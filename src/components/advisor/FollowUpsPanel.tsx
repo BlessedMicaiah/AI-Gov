@@ -24,7 +24,6 @@ export function FollowUpsPanel({
   if (!hasQuestions && !hasSources) return null;
 
   const answeredCount = Object.values(answers).filter((a) => a.trim()).length;
-  const allAnswered = answeredCount === questions.length;
 
   const handleSubmitAll = () => {
     const collected = questions
@@ -60,11 +59,21 @@ export function FollowUpsPanel({
 
       {hasQuestions && revealed && (
         <div>
-          <h4 className="font-mono text-terminal-green text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
-            <HelpCircle className="w-4 h-4" /> Refine Your Assessment
-          </h4>
+          <div className="flex items-center justify-between mb-3 gap-2">
+            <h4 className="font-mono text-terminal-green text-sm uppercase tracking-wider flex items-center gap-2">
+              <HelpCircle className="w-4 h-4" /> Refine Your Assessment
+            </h4>
+            <button
+              type="button"
+              onClick={() => setRevealed(false)}
+              className="shrink-0 text-xs font-mono text-terminal-muted hover:text-terminal-green transition-colors"
+            >
+              Skip — my assessment is fine
+            </button>
+          </div>
           <p className="text-sm font-sans text-terminal-muted mb-4">
-            Answer the questions below to get a more detailed, tailored assessment:
+            These questions are optional. Answer any that are relevant — even one
+            sharpens the assessment — and leave the rest blank.
           </p>
           <div className="grid gap-4">
             {questions.map((question, idx) => (
@@ -101,8 +110,8 @@ export function FollowUpsPanel({
           {onAnswersSubmit && (
             <div className="flex items-center justify-between mt-4">
               <p className="text-xs font-mono text-terminal-muted">
-                {answeredCount} of {questions.length} answered
-                {!allAnswered && ' — answer all for best results'}
+                {answeredCount} of {questions.length} answered — submit whatever you
+                have, or skip the rest
               </p>
               <button
                 type="button"

@@ -86,7 +86,8 @@ export const EMERGING_REGULATIONS: EmergingRegulation[] = [
     shortName: 'Canada AIDA',
     jurisdiction: 'Canada (Federal)',
     status: 'proposed',
-    summary: 'Part 3 of Bill C-27 (Digital Charter Implementation Act). Proposes a regulatory framework for AI in Canada covering high-impact AI systems. Requires impact assessments, risk mitigation, transparency, and establishes a new AI and Data Commissioner. Currently paused in parliamentary process.',
+    effectiveDate: undefined,
+    summary: 'Part 3 of Bill C-27 (Digital Charter Implementation Act). Proposed a regulatory framework for AI in Canada covering high-impact AI systems — impact assessments, risk mitigation, transparency, and a new AI and Data Commissioner. NOTE: Bill C-27 died on the Order Paper when Parliament was prorogued in January 2025 and was not reintroduced before the 2025 federal election. AIDA is therefore lapsed, not in force; any future Canadian AI law would be a new bill. Tracked here for historical reference and to anticipate a likely successor.',
     keyProvisions: [
       { provision: 'High-impact AI systems', description: 'Systems that may affect health, safety, human rights, or financial interests — specific criteria to be defined by regulation' },
       { provision: 'Impact assessments', description: 'Operators of high-impact AI must assess and mitigate risks of harm, bias, and adverse impacts before deployment' },
@@ -98,7 +99,7 @@ export const EMERGING_REGULATIONS: EmergingRegulation[] = [
     ],
     affectedSectors: ['all sectors operating in Canada'],
     complianceActions: [
-      'Monitor AIDA progress — bill may be reintroduced or modified in future parliamentary session',
+      'Treat AIDA as lapsed (died at prorogation, Jan 2025) — monitor for a successor bill rather than AIDA itself',
       'Inventory AI systems that could qualify as high-impact under likely criteria',
       'Begin conducting voluntary impact assessments aligned with ISO 42001 and NIST AI RMF',
       'Prepare transparency documentation for customer-facing AI systems',
@@ -157,29 +158,64 @@ export const EMERGING_REGULATIONS: EmergingRegulation[] = [
 ];
 
 /**
+ * Generic AI-governance vocabulary that appears in nearly every regulation
+ * summary. Scoring on these inflates relevance and surfaces jurisdiction-
+ * irrelevant regulations — e.g. a US HIPAA customer-support query pulling in
+ * the Colorado AI Act and Canada AIDA purely on "data" / "risk" / "ai" /
+ * "human". We deliberately exclude them so a regulation only matches on
+ * *distinctive* signal: a jurisdiction, a named sector, or a named practice.
+ */
+const GENERIC_TERMS = new Set([
+  'data', 'ai', 'artificial', 'intelligence', 'risk', 'risks', 'use', 'uses',
+  'using', 'used', 'system', 'systems', 'model', 'models', 'service', 'services',
+  'compliance', 'regulation', 'regulations', 'regulatory', 'governance', 'policy',
+  'policies', 'technology', 'business', 'company', 'customer', 'customers', 'team',
+  'support', 'process', 'processes', 'processing', 'impact', 'assessment',
+  'requirement', 'requirements', 'framework', 'frameworks', 'high', 'information',
+  'digital', 'tool', 'tools', 'human', 'organization', 'organisation', 'operations',
+]);
+
+/**
  * Find regulations relevant to a query based on keyword matching.
+ *
+ * Matches only on distinctive terms (generic AI-governance vocabulary is
+ * filtered out — see GENERIC_TERMS) plus an explicit name/id mention. A query
+ * that names no jurisdiction, sector, or regulated practice that a regulation
+ * actually governs returns nothing for that regulation rather than scattering
+ * geographically irrelevant entries across the result.
  */
 export function matchRegulations(query: string, limit = 3): EmergingRegulation[] {
   const q = query.toLowerCase();
-  const terms = q.split(/\s+/).filter(t => t.length > 2);
+  const terms = q
+    .split(/\s+/)
+    .map(t => t.replace(/[^\w-]/g, ''))
+    .filter(t => t.length > 2 && !GENERIC_TERMS.has(t));
 
   return EMERGING_REGULATIONS
     .map(reg => {
-      let score = 0;
       const searchText = `${reg.name} ${reg.shortName} ${reg.summary} ${reg.jurisdiction} ${reg.affectedSectors.join(' ')} ${reg.keyProvisions.map(p => p.description).join(' ')}`.toLowerCase();
 
+      // Whole-word matching, not substring: "automate messages" must not match
+      // "automated employment decision tools", and "our"/"what" must not match
+      // mid-word. Avoids coincidental cross-domain hits.
+      let termScore = 0;
       for (const term of terms) {
-        if (searchText.includes(term)) score++;
+        if (new RegExp(`\\b${term}\\b`).test(searchText)) termScore++;
       }
 
-      // Boost for exact short name match
-      if (q.includes(reg.shortName.toLowerCase())) score += 5;
-      if (q.includes(reg.id.replace(/-/g, ' '))) score += 3;
+      // Boost for exact short name / id mention — a direct ask always surfaces.
+      let boost = 0;
+      if (q.includes(reg.shortName.toLowerCase())) boost += 5;
+      if (q.includes(reg.id.replace(/-/g, ' '))) boost += 3;
 
-      return { reg, score };
+      return { reg, termScore, boost };
     })
-    .filter(({ score }) => score > 0)
-    .sort((a, b) => b.score - a.score)
+    // A jurisdiction-specific regulation surfaces only on an explicit
+    // name/id mention OR at least two distinct domain signals. A single
+    // coincidental word ("address", "decision") is not enough to assert that
+    // a geographically scoped law applies.
+    .filter(({ termScore, boost }) => boost > 0 || termScore >= 2)
+    .sort((a, b) => (b.termScore + b.boost) - (a.termScore + a.boost))
     .slice(0, limit)
     .map(({ reg }) => reg);
 }
