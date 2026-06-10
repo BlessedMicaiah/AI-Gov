@@ -18,7 +18,8 @@ export function FollowUpsPanel({
 }: FollowUpsPanelProps) {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [revealed, setRevealed] = useState(false);
-  const hasQuestions = questions.length > 0;
+  const [declined, setDeclined] = useState(false);
+  const hasQuestions = questions.length > 0 && !declined;
   const hasSources = sources.length > 0;
 
   if (!hasQuestions && !hasSources) return null;
@@ -42,18 +43,29 @@ export function FollowUpsPanel({
           <div className="flex items-start gap-2">
             <Sparkles className="w-4 h-4 text-terminal-green mt-0.5 shrink-0" />
             <p className="text-sm font-sans text-terminal-muted">
-              Govi has {questions.length} optional follow-up question{questions.length > 1 ? 's' : ''} that
-              would sharpen this assessment — answer {questions.length > 1 ? 'them' : 'it'} only if you want more detail.
+              Govi has {questions.length} further question{questions.length > 1 ? 's' : ''} for you.
+              Your answers matter — they let Govi do a proper, far more accurate risk assessment
+              tailored to your actual setup instead of a generic one. Would you like to answer{' '}
+              {questions.length > 1 ? 'them' : 'it'}?
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setRevealed(true)}
-            className="self-start sm:self-auto shrink-0 inline-flex items-center gap-2 px-4 py-2 text-sm font-mono rounded-md border border-terminal-green text-terminal-green hover:bg-terminal-green/10 transition-colors"
-          >
-            <HelpCircle className="w-3.5 h-3.5" />
-            Refine Assessment
-          </button>
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => setRevealed(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-mono rounded-md border border-terminal-green text-terminal-green hover:bg-terminal-green/10 transition-colors"
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              Yes, show the questions
+            </button>
+            <button
+              type="button"
+              onClick={() => setDeclined(true)}
+              className="px-3 py-2 text-xs font-mono text-terminal-muted hover:text-terminal-text transition-colors"
+            >
+              Not now
+            </button>
+          </div>
         </div>
       )}
 
@@ -65,15 +77,15 @@ export function FollowUpsPanel({
             </h4>
             <button
               type="button"
-              onClick={() => setRevealed(false)}
+              onClick={() => setDeclined(true)}
               className="shrink-0 text-xs font-mono text-terminal-muted hover:text-terminal-green transition-colors"
             >
               Skip — my assessment is fine
             </button>
           </div>
           <p className="text-sm font-sans text-terminal-muted mb-4">
-            These questions are optional. Answer any that are relevant — even one
-            sharpens the assessment — and leave the rest blank.
+            The more of these you answer, the more accurate your risk assessment gets.
+            Answer whichever you can — even one helps — and leave the rest blank.
           </p>
           <div className="grid gap-4">
             {questions.map((question, idx) => (

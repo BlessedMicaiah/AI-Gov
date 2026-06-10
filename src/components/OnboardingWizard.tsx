@@ -33,7 +33,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [selectedTools, setSelectedTools] = useState<string[]>([]);
-  const [selectedConcern, setSelectedConcern] = useState('');
+  const [selectedConcerns, setSelectedConcerns] = useState<string[]>([]);
   const [selectedRole, setSelectedRole] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -43,34 +43,46 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
     );
   };
 
+  const toggleConcern = (concern: string) => {
+    setSelectedConcerns((prev) =>
+      prev.includes(concern) ? prev.filter((c) => c !== concern) : [...prev, concern]
+    );
+  };
+
+  const persistAnswers = async () => {
+    try {
+      const res = await fetch('/api/onboarding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          aiTools: selectedTools,
+          primaryConcern: selectedConcerns.length > 0 ? selectedConcerns.join(', ') : undefined,
+          occupationalRole: selectedRole || undefined,
+        }),
+      });
+      if (!res.ok) {
+        console.error('Failed to persist onboarding answers', res.status);
+      }
+    } catch (err) {
+      console.error('Failed to persist onboarding answers', err);
+    }
+  };
+
   const handleSkip = async () => {
-    await fetch('/api/onboarding', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        aiTools: selectedTools,
-        primaryConcern: selectedConcern || undefined,
-        occupationalRole: selectedRole || undefined,
-      }),
-    });
+    await persistAnswers();
     onComplete();
   };
 
   const handleComplete = async () => {
     setLoading(true);
-    await fetch('/api/onboarding', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        aiTools: selectedTools,
-        primaryConcern: selectedConcern,
-        occupationalRole: selectedRole || undefined,
-      }),
-    });
+    await persistAnswers();
 
     const tools = selectedTools.length > 0 ? selectedTools.join(', ') : 'various AI tools';
-    const concern = CONCERNS.find((c) => c.value === selectedConcern)?.label ?? selectedConcern;
-    const query = `We use ${tools} at our business. Our primary AI governance concern is: ${concern}. What governance steps should we take and what are the key risks we need to address?`;
+    const concernLabels = selectedConcerns.map(
+      (value) => CONCERNS.find((c) => c.value === value)?.label ?? value
+    );
+    const concerns = concernLabels.length > 0 ? concernLabels.join('; ') : 'general AI governance';
+    const query = `We use ${tools} at our business. Our primary AI governance concern${concernLabels.length > 1 ? 's are' : ' is'}: ${concerns}. What governance steps should we take and what are the key risks we need to address?`;
 
     onComplete();
     router.push(`/govi?q=${encodeURIComponent(query)}`);
@@ -141,21 +153,21 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
             <>
               <p className="font-mono text-terminal-green text-xs uppercase tracking-wider mb-1">Step 2 of 3</p>
               <h2 className="font-mono text-lg font-bold text-terminal-text mb-1">
-                What&apos;s your primary AI governance concern?
+                What are your primary AI governance concerns?
               </h2>
-              <p className="text-sm text-terminal-muted font-sans mb-5">Choose the one that matters most right now.</p>
+              <p className="text-sm text-terminal-muted font-sans mb-5">Select all that apply.</p>
               <div className="space-y-2 mb-6">
                 {CONCERNS.map((concern) => (
                   <button
                     key={concern.value}
-                    onClick={() => setSelectedConcern(concern.value)}
+                    onClick={() => toggleConcern(concern.value)}
                     className={`w-full text-left px-4 py-3 rounded border font-mono text-sm transition-colors ${
-                      selectedConcern === concern.value
+                      selectedConcerns.includes(concern.value)
                         ? 'border-terminal-green bg-terminal-green/10 text-terminal-green'
                         : 'border-terminal-border text-terminal-muted hover:border-terminal-green/50 hover:text-terminal-text'
                     }`}
                   >
-                    {selectedConcern === concern.value ? '● ' : '○ '}{concern.label}
+                    {selectedConcerns.includes(concern.value) ? '✓ ' : '○ '}{concern.label}
                   </button>
                 ))}
               </div>
@@ -165,7 +177,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
                 </button>
                 <button
                   onClick={() => setStep(3)}
-                  disabled={!selectedConcern}
+                  disabled={selectedConcerns.length === 0}
                   className="inline-flex items-center gap-2 px-5 py-2 bg-terminal-green text-terminal-black font-mono text-sm font-bold rounded hover:bg-terminal-green/90 transition-colors disabled:opacity-50"
                 >
                   Next <ArrowRight className="w-4 h-4" />

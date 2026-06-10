@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
@@ -106,6 +106,9 @@ export function DashboardContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showWizard, setShowWizard] = useState(false);
+  // Once the wizard is completed/skipped this session, stale poll responses
+  // (fetched before the POST committed) must not re-open it.
+  const wizardDismissedRef = useRef(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchDashboard = useCallback(async (silent = false) => {
@@ -117,7 +120,7 @@ export function DashboardContent() {
       if (!r.ok) throw new Error(`Failed to load dashboard (${r.status})`);
       const d: DashboardData = await r.json();
       setData(d);
-      if (d.onboardingCompleted === false) setShowWizard(true);
+      if (d.onboardingCompleted === false && !wizardDismissedRef.current) setShowWizard(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load dashboard data.");
     } finally {
@@ -170,7 +173,15 @@ export function DashboardContent() {
 
   return (
     <div className="min-h-screen px-4 py-20 font-mono">
-      {showWizard && <OnboardingWizard onComplete={() => setShowWizard(false)} />}
+      {showWizard && (
+        <OnboardingWizard
+          onComplete={() => {
+            wizardDismissedRef.current = true;
+            setShowWizard(false);
+            setData((prev) => (prev ? { ...prev, onboardingCompleted: true } : prev));
+          }}
+        />
+      )}
 
       <div className="max-w-7xl mx-auto space-y-6">
         {/* ── Header ──────────────────────────────────────────────── */}
