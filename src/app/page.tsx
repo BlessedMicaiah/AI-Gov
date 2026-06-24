@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import {
   Hero,
+  GlobeSection,
   HowItWorks,
   Audience,
   ValueProposition,
@@ -29,7 +30,10 @@ export default async function Home() {
       {/* Section 1: Hero */}
       <Hero />
 
-      {/* Section 2: How It Works — orient first-time visitors */}
+      {/* Section 2: Interactive AI-governance globe */}
+      <GlobeSection />
+
+      {/* Section 3: How It Works — orient first-time visitors */}
       <HowItWorks />
 
       {/* Section 3: Interactive Advisor */}

@@ -216,7 +216,7 @@ export function Header() {
                 )}
               </div>
             ) : (
-              <Link href="/signup" className="btn-primary text-sm py-2">
+              <Link href="/signin" className="btn-primary text-sm py-2">
                 Get Started
               </Link>
             )}
@@ -292,7 +292,7 @@ export function Header() {
                 </>
               ) : (
                 <Link
-                  href="/signup"
+                  href="/signin"
                   className="btn-primary text-sm py-2 w-full text-center block"
                   onClick={() => setMobileMenuOpen(false)}
                 >

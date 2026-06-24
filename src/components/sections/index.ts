@@ -1,4 +1,5 @@
 export { Hero } from "./Hero";
+export { GlobeSection } from "./GlobeSection";
 export { HowItWorks } from "./HowItWorks";
 export { Audience } from "./Audience";
 export { ValueProposition } from "./ValueProposition";

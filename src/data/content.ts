@@ -157,7 +157,7 @@ export const audienceCards: AudienceCard[] = [
   },
   {
     id: 'cios-cisos',
-    title: 'CIOs & CISOs',
+    title: 'CROs & CIOs',
     description:
       'Integrate AI governance into your existing security and IT frameworks with minimal friction.',
     icon: 'Shield',
@@ -289,5 +289,52 @@ export const playbooks: Playbook[] = [
     description:
       'A leadership-level overview of AI governance strategy, board reporting, and organizational alignment.',
     level: 'leadership',
+  },
+];
+
+// ─── AI Governance Life Cycle Templates (models & use cases) ────────────────
+
+export interface LifecycleTemplate {
+  id: string;
+  title: string;
+  description: string;
+  href: string;
+}
+
+export const lifecycleTemplates: LifecycleTemplate[] = [
+  {
+    id: 'ai-inventory',
+    title: 'AI Inventory Templates',
+    description:
+      'Build and maintain an audit-ready registry of every AI system, model, tool, and use case — with owners, risk tiers, and lifecycle status.',
+    href: '/playbooks',
+  },
+  {
+    id: 'ai-use-case-form',
+    title: 'AI Use Case Form',
+    description:
+      'A standard intake form to capture, triage, and route proposed or materially changed AI use cases before review and approval.',
+    href: '/playbooks',
+  },
+  {
+    id: 'risk-assessment',
+    title: 'Risk Assessment Templates',
+    description:
+      'Stakeholder-input templates that assess each AI use case for potential harm, data sensitivity, and auto-high triggers ahead of governance sign-off.',
+    href: '/playbooks',
+  },
+  {
+    id: 'risk-tiering',
+    title: 'Risk Tiering',
+    description:
+      'Classify AI use cases into Low, Medium, High, and Critical tiers to calibrate the controls, oversight, and approvals each one requires.',
+    href: '/playbooks',
+  },
+  {
+    id: 'ai-approval',
+    title: 'AI Approval Template',
+    description:
+      'Record the formal go / conditional-go / no-go decision, required approvers, and launch conditions for each AI use case.',
+    href: '/playbooks',
   },
 ];

@@ -91,10 +91,20 @@ export function Advisor({ showHeader = true, initialQuery, initialConversationId
     }
   }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-scroll to bottom when thread grows, loading changes, or streaming updates
+  // While Govi is thinking/streaming, keep the input area in view so the
+  // user doesn't lose the text box; only jump to the bottom once a new
+  // response actually lands in the thread.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [thread.length, isLoading, streamingText]);
+    if (isLoading) {
+      inputAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (thread.length > 0) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [thread.length]);
 
   const fetchConversations = async () => {
     try {
