@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { templates } from "@/data/content";
 import { FileText, Download, ArrowRight } from "lucide-react";
@@ -19,11 +18,11 @@ export function Templates() {
               Ready-to-Use Governance Assets
             </h2>
             <p className="section-subtitle">
-              Download, customize, and implement immediately.
+              Free to download, customize, and implement immediately.
             </p>
           </div>
-          <Link href="/signup" className="btn-primary self-start md:self-auto">
-            Access the Template Library
+          <Link href="/govi" className="btn-primary self-start md:self-auto">
+            Generate with AI — Free
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -33,21 +32,9 @@ export function Templates() {
           {templates.map((template) => (
             <Link
               key={template.id}
-              href="/signup"
+              href="/govi"
               className="card group cursor-pointer flex items-center gap-4"
             >
-              {/* Thumbnail */}
-              <div className="w-14 h-14 flex-shrink-0 border border-terminal-border rounded-md bg-terminal-gray/50 overflow-hidden relative">
-                <div className="absolute inset-0 grid-bg opacity-20" />
-                <Image
-                  src={template.category === "policy" ? "/policy-icon.svg" : "/template-icon.svg"}
-                  alt="Template preview"
-                  width={56}
-                  height={56}
-                  className="absolute inset-0 w-full h-full object-contain p-3 opacity-80"
-                />
-              </div>
-
               {/* Icon */}
               <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center border border-terminal-border rounded-md bg-terminal-gray group-hover:border-terminal-green/50 transition-colors">
                 <FileText className="w-6 h-6 text-terminal-green" />
@@ -55,9 +42,14 @@ export function Templates() {
 
               {/* Content */}
               <div className="flex-grow min-w-0">
-                <h3 className="font-mono text-base font-bold text-terminal-text group-hover:text-terminal-green transition-colors truncate">
-                  {template.title}
-                </h3>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <h3 className="font-mono text-base font-bold text-terminal-text group-hover:text-terminal-green transition-colors truncate">
+                    {template.title}
+                  </h3>
+                  <span className="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-terminal-green/15 text-terminal-green border border-terminal-green/30">
+                    FREE
+                  </span>
+                </div>
                 <p className="text-terminal-muted font-sans text-sm truncate">
                   {template.description}
                 </p>
@@ -70,6 +62,10 @@ export function Templates() {
             </Link>
           ))}
         </div>
+
+        <p className="mt-6 text-center text-xs font-mono text-terminal-muted">
+          No credit card required · No sign-up needed · Generate custom versions with AI
+        </p>
       </div>
     </section>
   );
