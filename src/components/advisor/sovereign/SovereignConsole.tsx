@@ -17,8 +17,6 @@ type GoviSession = ReturnType<typeof useGoviSession>;
 interface SovereignConsoleProps {
   /** Shared session lifted into GoviExperience so the skin can be switched without losing state. */
   session: GoviSession;
-  /** Optional interface-switcher control rendered in the header. */
-  interfaceToggle?: React.ReactNode;
 }
 
 const STARTER_PROMPTS = [
@@ -50,7 +48,7 @@ function exportThreadLog(
   URL.revokeObjectURL(url);
 }
 
-export function SovereignConsole({ session, interfaceToggle }: SovereignConsoleProps) {
+export function SovereignConsole({ session }: SovereignConsoleProps) {
   const s = session;
 
   const lastResponse = s.thread.length > 0 ? s.thread[s.thread.length - 1].response : null;
@@ -76,7 +74,6 @@ export function SovereignConsole({ session, interfaceToggle }: SovereignConsoleP
               Anchored by the GovSecure Governance Library
             </p>
           </div>
-          {interfaceToggle && <div className="ml-auto shrink-0">{interfaceToggle}</div>}
         </div>
 
         {/* Scrollable conversation body */}
