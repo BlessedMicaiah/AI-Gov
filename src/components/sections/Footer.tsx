@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { trustBadges } from "@/data/content";
-import { Mail, ArrowRight, Github, Linkedin, Shield } from "lucide-react";
+import { Mail, ArrowRight, Linkedin, Shield } from "lucide-react";
 
 
 export function Footer() {
@@ -160,12 +160,6 @@ export function Footer() {
                   className="w-10 h-10 flex items-center justify-center border border-terminal-border rounded-md hover:border-terminal-green hover:text-terminal-green transition-colors"
                 >
                   <Linkedin className="w-4 h-4" />
-                </a>
-                <a
-                  href="#"
-                  className="w-10 h-10 flex items-center justify-center border border-terminal-border rounded-md hover:border-terminal-green hover:text-terminal-green transition-colors"
-                >
-                  <Github className="w-4 h-4" />
                 </a>
               </div>
             </div>
