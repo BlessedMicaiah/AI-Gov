@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import { Terminal, LayoutPanelLeft, Check, ExternalLink, Loader2 } from 'lucide-react';
-import { useGoviInterface, type GoviInterface } from '@/components/advisor/useGoviInterface';
+import { Terminal, LayoutPanelLeft, Check, ExternalLink } from 'lucide-react';
+import { type GoviInterface } from '@/components/advisor/useGoviInterface';
+import { useTheme } from '@/context/ThemeContext';
 
 interface SettingsClientProps {
   initialInterface: GoviInterface;
@@ -37,13 +37,13 @@ const TerminalPreview = () => (
 const SovereignPreview = () => (
   <div className="flex h-full w-full bg-white text-[9px]">
     <div className="flex-1 p-3">
-      <p className="font-semibold text-slate-800">Compliance Analysis</p>
+      <p className="font-semibold text-slate-800">AI Governance Advisor</p>
       <div className="mt-2 ml-auto w-2/3 rounded-lg rounded-tr-sm bg-slate-100 p-1.5 text-slate-600">
         Analyze retention policy…
       </div>
       <div className="mt-2 rounded-lg border border-slate-200 p-1.5">
         <span className="font-semibold text-emerald-600">G</span>{' '}
-        <span className="text-slate-500">Sovereign Assistant</span>
+        <span className="text-slate-500">Govi</span>
         <div className="mt-1 h-1 w-3/4 rounded-full bg-slate-100" />
       </div>
     </div>
@@ -62,46 +62,43 @@ const SovereignPreview = () => (
 const OPTIONS: SkinOption[] = [
   {
     id: 'terminal',
-    name: 'Terminal',
-    tagline: 'Classic',
+    name: 'Classic Terminal',
+    tagline: 'Dark theme',
     description:
-      'The original Govi — a focused, retro terminal advisor with the GovSecure aesthetic.',
+      'The original Govi — a focused, retro terminal advisor with the GovSecure aesthetic. Pairs with the dark theme.',
     bullets: ['High-contrast terminal theme', 'Single-column, distraction-free', 'Familiar Govi v1 layout'],
     preview: <TerminalPreview />,
   },
   {
     id: 'sovereign',
-    name: 'Sovereign Audit Console',
-    tagline: 'New',
+    name: 'Console',
+    tagline: 'Light theme',
     description:
-      'A boardroom-grade audit workspace with a live intelligence panel: compliance readiness, risk exposure, detected regulatory entities and cited sources.',
+      'A modern, full-width workspace with a live governance analysis panel: compliance readiness, risk exposure, detected regulatory entities and cited sources. Pairs with the light theme.',
     bullets: [
-      'Live Audit Intelligence side panel',
+      'Live governance analysis side panel',
       'Readiness & risk-exposure gauges',
       'Detected entities + reference documents',
-      'Exportable analysis session log',
+      'Exportable session log',
     ],
     preview: <SovereignPreview />,
   },
 ];
 
 export function SettingsClient({ initialInterface }: SettingsClientProps) {
-  const { preference, setInterface } = useGoviInterface();
-  const [selected, setSelected] = useState<GoviInterface>(initialInterface);
-  const [saving, setSaving] = useState<GoviInterface | null>(null);
-  const [saved, setSaved] = useState(false);
+  const { theme, setTheme, mounted } = useTheme();
 
-  // The hook resolves the authoritative value; keep the local highlight in sync
-  // once it differs from what the server rendered.
-  const active = saved ? selected : preference || initialInterface;
+  // The Govi skin is driven by the app theme: dark → terminal, light → console
+  // (the header's light/dark toggle does the same thing). Until the theme
+  // resolves on the client we fall back to the server-rendered preference.
+  const active: GoviInterface = mounted
+    ? theme === 'light'
+      ? 'sovereign'
+      : 'terminal'
+    : initialInterface;
 
-  const choose = async (id: GoviInterface) => {
-    setSelected(id);
-    setSaving(id);
-    setSaved(false);
-    await setInterface(id);
-    setSaving(null);
-    setSaved(true);
+  const choose = (id: GoviInterface) => {
+    setTheme(id === 'sovereign' ? 'light' : 'dark');
   };
 
   return (
@@ -112,8 +109,9 @@ export function SettingsClient({ initialInterface }: SettingsClientProps) {
         </div>
         <h1 className="text-2xl font-bold text-terminal-text">Govi Interface</h1>
         <p className="mt-2 max-w-2xl text-sm text-terminal-muted">
-          Choose how the Govi advisor looks and feels. Your choice is saved to
-          your account and applies across devices — you can switch back anytime.
+          Choose how the Govi advisor looks and feels. This is tied to your
+          light/dark theme — picking one here switches the app theme too, and
+          applies instantly. You can also use the theme toggle in the header.
         </p>
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2">
@@ -172,16 +170,12 @@ export function SettingsClient({ initialInterface }: SettingsClientProps) {
                           : 'border border-terminal-border text-terminal-muted group-hover:text-terminal-text'
                       }`}
                     >
-                      {saving === opt.id ? (
-                        <>
-                          <Loader2 className="h-3 w-3 animate-spin" /> Saving…
-                        </>
-                      ) : isActive ? (
+                      {isActive ? (
                         <>
                           <Check className="h-3 w-3" /> Active
                         </>
                       ) : (
-                        'Use this interface'
+                        'Use this style'
                       )}
                     </span>
                   </div>
@@ -193,7 +187,7 @@ export function SettingsClient({ initialInterface }: SettingsClientProps) {
 
         <div className="mt-6 flex items-center justify-between rounded-xl border border-terminal-border bg-terminal-bg-secondary/40 px-4 py-3">
           <p className="text-xs text-terminal-muted">
-            {saved ? 'Preference saved.' : 'Changes apply the next time you open Govi.'}
+            Applies instantly across Govi.
           </p>
           <Link
             href="/govi"
