@@ -82,7 +82,7 @@ export function SovereignInput({
           onChange={(e) => handleChange(e.target.value)}
           onKeyDown={handleKeyDown}
           rows={1}
-          placeholder="Inquire about governance, compliance, or system audits..."
+          placeholder="Describe your AI use case, or ask a governance question…"
           disabled={isLoading}
           className="max-h-40 min-h-[40px] flex-grow resize-none self-center bg-transparent px-1 py-2 text-[15px] text-slate-800 outline-none placeholder:text-slate-400"
         />
@@ -102,9 +102,7 @@ export function SovereignInput({
       <div className="mt-2.5 flex items-center justify-between px-1">
         <span className="flex items-center gap-1.5 text-[11px] font-mono text-slate-400">
           <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-          Sovereignty Mode Active
-          <span className="text-slate-300">·</span>
-          Context Window: 128k
+          Grounded in the GovSecure Library
         </span>
         <span className="hidden text-[11px] font-mono text-slate-400 sm:block">
           Press ⌘ + Enter to send

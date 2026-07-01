@@ -70,7 +70,7 @@ export function AuditIntelligencePanel({ response, isPaidUser, analyzing }: Audi
     <aside className="w-full shrink-0 border-t border-slate-200/80 bg-white lg:h-full lg:w-[340px] lg:overflow-y-auto lg:border-l lg:border-t-0">
       <div className="space-y-7 p-6">
         <h2 className="text-[15px] font-semibold text-slate-900 tracking-tight">
-          Audit Intelligence Panel
+          Governance Analysis
         </h2>
 
         {/* Gauges */}
@@ -159,13 +159,13 @@ export function AuditIntelligencePanel({ response, isPaidUser, analyzing }: Audi
               <div className="mb-1 flex items-center gap-1.5">
                 <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
                 <span className="text-[10px] font-mono font-semibold uppercase tracking-[0.16em] text-emerald-400">
-                  Enterprise
+                  Upgrade
                 </span>
               </div>
-              <p className="text-[15px] font-semibold">Upgrade to Enterprise Audit</p>
+              <p className="text-[15px] font-semibold">Unlock the full advisor</p>
               <p className="mt-1.5 text-[13px] leading-relaxed text-slate-300">
-                Unlock real-time legal council integration and automated
-                regulatory filing.
+                Get unlimited assessments, document generation, and priority
+                support on a paid plan.
               </p>
               <a
                 href="/pricing"

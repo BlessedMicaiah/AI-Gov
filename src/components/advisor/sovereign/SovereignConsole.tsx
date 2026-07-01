@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { ShieldCheck, Loader2, Radar } from 'lucide-react';
-import { useGoviSession } from '../useGoviSession';
+import type { useGoviSession } from '../useGoviSession';
 import { WorkflowPanel } from '../WorkflowPanel';
 import { AuditIntelligencePanel } from './AuditIntelligencePanel';
 import { SovereignMessage } from './SovereignMessage';
@@ -12,16 +12,20 @@ import { SovereignActionsMenu } from './SovereignActionsMenu';
 import { sessionCode } from './metrics';
 import type { AdvisorResponse } from '@/types/advisor';
 
+type GoviSession = ReturnType<typeof useGoviSession>;
+
 interface SovereignConsoleProps {
-  initialQuery?: string;
-  initialConversationId?: string;
+  /** Shared session lifted into GoviExperience so the skin can be switched without losing state. */
+  session: GoviSession;
+  /** Optional interface-switcher control rendered in the header. */
+  interfaceToggle?: React.ReactNode;
 }
 
 const STARTER_PROMPTS = [
-  'Analyze our data retention policy against the new EU AI Act requirements.',
-  'We use AI to screen CVs for hiring. Which regulations classify this as high-risk?',
-  'Draft a DPIA for a customer-facing chatbot handling personal data.',
-  'Assess third-party risk for a SaaS vendor embedding an LLM in our workflow.',
+  'We use ChatGPT in our customer support team. What risks should we address?',
+  'We\'re building an AI tool to screen CVs for hiring. What regulations apply?',
+  'Our startup uses AI to generate marketing content. What governance do we need?',
+  'We want to deploy an AI chatbot for financial advice. What are the risks?',
 ];
 
 function isPaid(role?: string | null) {
@@ -32,22 +36,22 @@ function exportThreadLog(
   entries: { query: string; response: AdvisorResponse }[],
   code: string,
 ) {
-  const lines = [`# Compliance Analysis Session — ${code}`, ''];
+  const lines = [`# Govi — AI Governance Session — ${code}`, ''];
   for (const [i, e] of entries.entries()) {
-    lines.push(`## Exchange ${i + 1}`, '', `**Auditor:** ${e.query}`, '');
+    lines.push(`## Exchange ${i + 1}`, '', `**You:** ${e.query}`, '');
     lines.push(`**Govi (${e.response.riskProfile.level} risk):**`, e.response.riskProfile.description, '');
   }
   const blob = new Blob([lines.join('\n')], { type: 'text/markdown' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `compliance-session-${code}.md`;
+  a.download = `govi-session-${code}.md`;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-export function SovereignConsole({ initialQuery, initialConversationId }: SovereignConsoleProps) {
-  const s = useGoviSession({ initialQuery, initialConversationId });
+export function SovereignConsole({ session, interfaceToggle }: SovereignConsoleProps) {
+  const s = session;
 
   const lastResponse = s.thread.length > 0 ? s.thread[s.thread.length - 1].response : null;
   const isPaidUser = isPaid(s.session?.user?.role);
@@ -64,14 +68,15 @@ export function SovereignConsole({ initialQuery, initialConversationId }: Sovere
         {/* Slim identity header — no action buttons; everything lives in the composer's "+" menu */}
         <div className="flex items-center gap-3 border-b border-slate-200/80 bg-white/90 px-6 py-3.5 backdrop-blur">
           <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.15)]" />
-          <div>
+          <div className="min-w-0">
             <h1 className="text-[15px] font-semibold leading-tight text-slate-900">
-              Compliance Analysis Session
+              Govi — AI Governance Advisor
             </h1>
             <p className="text-[11px] font-mono uppercase tracking-wide text-slate-400">
-              ID: {code}
+              Anchored by the GovSecure Governance Library
             </p>
           </div>
+          {interfaceToggle && <div className="ml-auto shrink-0">{interfaceToggle}</div>}
         </div>
 
         {/* Scrollable conversation body */}
@@ -83,12 +88,12 @@ export function SovereignConsole({ initialQuery, initialConversationId }: Sovere
                 G
               </div>
               <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
-                Sovereign Audit Console
+                AI Governance Advisor
               </h2>
               <p className="mx-auto mt-2 max-w-lg text-[15px] leading-relaxed text-slate-500">
-                Interrogate governance frameworks, generate defensible artifacts
-                and track compliance posture in real time — grounded in the
-                GovSecure Governance Library.
+                Describe your AI use case and get an instant governance risk
+                assessment with recommendations aligned to NIST AI RMF, the EU AI
+                Act, and ISO 42001 — grounded in the GovSecure Governance Library.
               </p>
               <div className="mt-7 grid gap-2.5 sm:grid-cols-2">
                 {STARTER_PROMPTS.map((p, i) => (
@@ -139,7 +144,7 @@ export function SovereignConsole({ initialQuery, initialConversationId }: Sovere
                   G
                 </span>
                 <span className="flex items-center gap-2 text-[11px] font-mono font-semibold uppercase tracking-[0.14em] text-slate-500">
-                  Govi Sovereign Assistant
+                  Govi
                   <span className="flex items-center gap-1 text-emerald-600">
                     <Radar className="h-3.5 w-3.5 animate-spin" style={{ animationDuration: '2s' }} />
                     {s.streamingStage === 'reconnecting'
@@ -220,10 +225,9 @@ export function SovereignConsole({ initialQuery, initialConversationId }: Sovere
           {!s.isAuthenticated && s.guestUsed && (
             <div className="rounded-2xl border border-slate-200 bg-slate-50 py-10 text-center">
               <ShieldCheck className="mx-auto mb-3 h-8 w-8 text-emerald-500" />
-              <p className="text-[15px] font-semibold text-slate-800">Free analysis used</p>
+              <p className="text-[15px] font-semibold text-slate-800">Free prompt used</p>
               <p className="mx-auto mt-1 max-w-sm text-[13px] text-slate-500">
-                Sign in to continue using the Sovereign Console and save your
-                audit sessions.
+                Sign in to continue using Govi and save your conversation history.
               </p>
               <div className="mt-5 flex justify-center gap-3">
                 <Link

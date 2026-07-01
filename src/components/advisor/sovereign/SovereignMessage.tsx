@@ -64,10 +64,10 @@ export function SovereignMessage({
 
   return (
     <div className="space-y-5">
-      {/* User / auditor message */}
+      {/* User message */}
       <div className="flex flex-col items-end">
         <p className="mb-1.5 text-[10px] font-mono font-semibold uppercase tracking-[0.16em] text-slate-400">
-          Auditor Access{timestamp ? ` · ${timestamp}` : ''}
+          You{timestamp ? ` · ${timestamp}` : ''}
         </p>
         <div className="max-w-[85%] rounded-2xl rounded-tr-md bg-slate-100 px-5 py-4">
           <p className="text-[15px] leading-relaxed text-slate-800">{query}</p>
@@ -80,7 +80,7 @@ export function SovereignMessage({
           G
         </span>
         <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.14em] text-slate-500">
-          Govi Sovereign Assistant
+          Govi
           {!isClarification && (
             <span className={`ml-2 ${risk.text}`}>· {risk.label} Risk</span>
           )}
