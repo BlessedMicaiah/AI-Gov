@@ -121,7 +121,47 @@
   }
 
   .glass-card {
-    @apply glass rounded-xl p-6 transition-all duration-300 hover:border-terminal-green/30 hover:shadow-[0_0_40px_rgba(0,255,136,0.1)];
+    @apply glass rounded-xl p-6 relative;
+    /* Layered surface gradient for depth (overrides .glass flat fill) */
+    background: linear-gradient(
+      160deg,
+      rgb(var(--color-bg-secondary-rgb) / 0.72),
+      rgb(var(--color-bg-secondary-rgb) / 0.40)
+    );
+    transition:
+      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.45s ease,
+      box-shadow 0.45s ease;
+  }
+
+  /* Top-edge accent line — ignites green on hover. Inset past the corner
+     radius so it never pokes out of the rounded corners. */
+  .glass-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 1.25rem auto 1.25rem;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--color-accent-rgb) / 0.85),
+      transparent
+    );
+    opacity: 0;
+    transition: opacity 0.45s ease;
+    pointer-events: none;
+  }
+
+  .glass-card:hover {
+    transform: translateY(-4px);
+    border-color: rgb(var(--color-accent-rgb) / 0.45);
+    box-shadow:
+      0 18px 40px -14px rgb(0 0 0 / 0.6),
+      0 0 34px rgb(var(--color-accent-rgb) / 0.13);
+  }
+
+  .glass-card:hover::before {
+    opacity: 1;
   }
 
   /* Terminal window styling */
@@ -155,6 +195,11 @@
   /* Tertiary: low-weight inline text link. Use inside prose or for dismissive actions. */
   .btn-tertiary {
     @apply inline-flex items-center gap-1 font-mono text-terminal-green hover:underline underline-offset-2 transition-colors;
+  }
+
+  /* Form input — used across the governance dashboard (inventory, tasks, etc.). */
+  .input-field {
+    @apply w-full px-3 py-2 rounded-md bg-terminal-gray border border-terminal-border font-mono text-sm text-terminal-text placeholder:text-terminal-muted/60 transition-colors focus:outline-none focus:border-terminal-green/60 focus:ring-1 focus:ring-terminal-green/30;
   }
 
   /* Card styling */
@@ -292,15 +337,35 @@
   }
 }
 
-/* Reveal animations */
-.reveal {
+/* ── Scroll reveal ───────────────────────────────────────────────────────────
+   Driven by the global ScrollReveal IntersectionObserver, which adds the
+   `.revealed` class to any element carrying a `data-reveal` attribute once it
+   scrolls into view. Implemented as an animation (not a transition) so it never
+   competes with a card's own hover-transform. `backwards` fill keeps staggered
+   items hidden during their delay window; the absence of `forwards` fill means
+   the element reverts to its normal state on completion, so hover transforms
+   work again the instant the entrance finishes. Stagger via `--reveal-delay`. */
+[data-reveal]:not(.revealed) {
   opacity: 0;
-  transform: translateY(20px);
-  will-change: transform, opacity;
 }
 
-.reveal.active {
-  animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+[data-reveal].revealed {
+  animation: revealUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+[data-reveal="scale"].revealed {
+  animation-name: revealScale;
+}
+
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes revealScale {
+  from { opacity: 0; transform: translateY(22px) scale(0.96); }
+  to   { opacity: 1; transform: none; }
 }
 
 /* Smooth active states */
@@ -330,5 +395,12 @@ a {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* Never leave reveal content stuck hidden when motion is reduced. */
+  [data-reveal] {
+    opacity: 1 !important;
+    animation: none !important;
+    transform: none !important;
   }
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { audienceCards } from "@/data/content";
 import { Briefcase, Shield, Cpu, Scale, LucideIcon } from "lucide-react";
@@ -21,10 +22,10 @@ const audienceLinks: Record<string, string> = {
 
 export function Audience() {
   return (
-    <section className="section bg-terminal-dark/30">
+    <section className="section bg-terminal-dark">
       <div className="max-w-7xl mx-auto">
         {/* Section header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12" data-reveal>
           <span className="font-mono text-terminal-green text-sm uppercase tracking-wider">
             Who This Is For
           </span>
@@ -40,7 +41,8 @@ export function Audience() {
                 key={card.id}
                 href={href}
                 className="card group"
-                style={{ animationDelay: `${index * 100}ms` }}
+                data-reveal="scale"
+                style={{ "--reveal-delay": `${index * 90}ms` } as CSSProperties}
               >
                 {/* Icon */}
                 <div className="w-12 h-12 mb-4 flex items-center justify-center border border-terminal-border rounded-md bg-terminal-gray group-hover:border-terminal-green/50 transition-colors">

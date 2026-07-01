@@ -22,7 +22,35 @@ export const BRAND_COLORS = {
   bg: 'FFFFFF',
   /** Section divider lines. */
   divider: 'CCCCCC',
+  /** White — banner/cover text on the deep-green fill. */
+  white: 'FFFFFF',
+  /** Vivid governance-green used as a cover/banner fill (white text on top). */
+  banner: '0B7A45',
+  /** Deep cover background (parity with the PDF cover page). */
+  coverBg: '0B1A12',
+  /** Light-green wash behind section heading bands. */
+  accentSoft: 'E7F7EF',
+  /** Neutral wash for callout / license boxes. */
+  panel: 'F4F7F5',
+  /** Border for washed panels. */
+  panelBorder: 'DCE4DF',
 } as const;
+
+/**
+ * Risk-tier colour coding (bare hex). Shared by the Word + PDF exporters so a
+ * tier badge looks identical across formats.
+ */
+export const RISK_TIER_COLORS: Record<string, string> = {
+  Low: '1F9D63',
+  Medium: 'D99A0B',
+  High: 'E1670E',
+  Critical: 'D7263D',
+};
+
+/** Resolve a tier label to its brand colour, defaulting to the accent green. */
+export function riskTierColor(tier: string): string {
+  return RISK_TIER_COLORS[tier] ?? BRAND_COLORS.accent;
+}
 
 export const BRAND_FONTS = {
   /** Body / prose default. Chosen because every Office install ships it. */

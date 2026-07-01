@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { Space_Mono, Inter } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/layout";
+import { Header, AppShell } from "@/components/layout";
 import { Providers } from "@/components/layout/Providers";
 import { ThemeProvider } from "@/context";
 import { MouseSpotlight } from "@/components/ui/MouseSpotlight";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ScrollReveal } from "@/components/layout/ScrollReveal";
 
 const spaceMono = Space_Mono({
@@ -103,10 +102,8 @@ export default function RootLayout({
               {/* Header */}
               <Header />
 
-              {/* Main content */}
-              <ErrorBoundary>
-                <main className="relative z-10">{children}</main>
-              </ErrorBoundary>
+              {/* Sidebar (authenticated) + main content */}
+              <AppShell>{children}</AppShell>
             </div>
           </ThemeProvider>
         </Providers>
