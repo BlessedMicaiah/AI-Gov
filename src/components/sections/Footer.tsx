@@ -50,7 +50,7 @@ export function Footer() {
       </div>
 
       {/* ── Industry-standards CTA — a standout, motion-bordered card ── */}
-      <div className="relative z-10 mx-auto max-w-5xl px-4 -mt-14 md:-mt-16">
+      <div className="relative z-10 mx-auto max-w-5xl px-4 pt-16">
         <div className="group relative overflow-hidden rounded-[2rem] p-[1.5px]">
           {/* Rotating conic-gradient ring = the curved border in motion */}
           <span
@@ -107,13 +107,21 @@ export function Footer() {
                 ))}
               </div>
 
-              <Link
-                href="/assessment"
-                className="group/btn mt-8 inline-flex items-center gap-2 rounded-full bg-terminal-green px-6 py-3 font-mono text-sm font-semibold text-terminal-black transition-all duration-300 hover:gap-3 hover:bg-terminal-green-dim"
-              >
-                Start your free assessment
-                <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5" />
-              </Link>
+              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Link
+                  href="/signup"
+                  className="group/btn inline-flex items-center gap-2 rounded-full bg-terminal-green px-6 py-3 font-mono text-sm font-semibold text-terminal-black transition-all duration-300 hover:gap-3 hover:bg-terminal-green-dim"
+                >
+                  Start your free assessment
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-0.5" />
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center gap-2 rounded-full border border-terminal-border px-6 py-3 font-mono text-sm font-semibold text-terminal-text transition-all duration-300 hover:border-terminal-green/60 hover:text-terminal-green"
+                >
+                  View pricing
+                </Link>
+              </div>
             </div>
           </div>
         </div>
