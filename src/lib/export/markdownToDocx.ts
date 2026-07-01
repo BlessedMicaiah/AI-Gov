@@ -17,6 +17,19 @@ import {
   NumberFormat,
 } from 'docx';
 
+import { BRAND_COLORS, BRAND_FONTS } from '@/lib/exporters/styles';
+
+/** Brand-coloured overrides for the built-in heading styles. */
+const HEADING_STYLES = {
+  default: {
+    title: { run: { font: BRAND_FONTS.heading, color: BRAND_COLORS.textPrimary, bold: true } },
+    heading1: { run: { font: BRAND_FONTS.heading, color: BRAND_COLORS.accent, bold: true } },
+    heading2: { run: { font: BRAND_FONTS.heading, color: BRAND_COLORS.accentDim, bold: true } },
+    heading3: { run: { font: BRAND_FONTS.heading, color: BRAND_COLORS.accentDim, bold: true } },
+    heading4: { run: { font: BRAND_FONTS.heading, color: BRAND_COLORS.textMuted, bold: true } },
+  },
+};
+
 interface ParsedLine {
   type: 'h1' | 'h2' | 'h3' | 'h4' | 'bullet' | 'numbered' | 'paragraph' | 'empty';
   text: string;
@@ -139,6 +152,7 @@ export async function markdownToDocx(markdown: string, title: string): Promise<B
   }
 
   const doc = new Document({
+    styles: HEADING_STYLES,
     sections: [
       {
         properties: {

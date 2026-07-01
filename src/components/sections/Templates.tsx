@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { templates } from "@/data/content";
 import { FileText, Download, ArrowRight } from "lucide-react";
@@ -9,7 +10,7 @@ export function Templates() {
     <section id="templates" className="section bg-terminal-dark scroll-mt-20">
       <div className="max-w-7xl mx-auto">
         {/* Section header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12 gap-4">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12 gap-4" data-reveal>
           <div>
             <span className="font-mono text-terminal-green text-sm uppercase tracking-wider mb-2 block">
               Tools & Templates
@@ -29,11 +30,13 @@ export function Templates() {
 
         {/* Templates list */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {templates.map((template) => (
+          {templates.map((template, index) => (
             <Link
               key={template.id}
               href="/govi"
               className="card group cursor-pointer flex items-center gap-4"
+              data-reveal
+              style={{ "--reveal-delay": `${index * 70}ms` } as CSSProperties}
             >
               {/* Icon */}
               <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center border border-terminal-border rounded-md bg-terminal-gray group-hover:border-terminal-green/50 transition-colors">

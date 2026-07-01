@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { valueProps } from "@/data/content";
 import { ShieldCheck, Heart, Rocket } from "lucide-react";
 
@@ -14,7 +15,7 @@ export function ValueProposition() {
     <section className="section">
       <div className="max-w-7xl mx-auto">
         {/* Section header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-16" data-reveal>
           <h2 className="section-title">
             Why AI Governance Matters for SMBs{" "}
             <span className="text-terminal-green">(Right Now)</span>
@@ -26,10 +27,15 @@ export function ValueProposition() {
 
         {/* 3-column grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {valueProps.map((prop) => {
+          {valueProps.map((prop, index) => {
             const Icon = iconMap[prop.id as keyof typeof iconMap] || ShieldCheck;
             return (
-              <div key={prop.id} className="card">
+              <div
+                key={prop.id}
+                className="card"
+                data-reveal="scale"
+                style={{ "--reveal-delay": `${index * 110}ms` } as CSSProperties}
+              >
                 {/* Icon */}
                 <div className="w-14 h-14 mb-6 flex items-center justify-center border-2 border-terminal-green/30 rounded-md bg-terminal-green/5">
                   <Icon className="w-7 h-7 text-terminal-green" />

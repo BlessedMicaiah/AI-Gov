@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { lifecycleTemplates } from "@/data/content";
 import { BookOpen, ArrowUpRight, Download } from "lucide-react";
@@ -387,17 +388,25 @@ Generated free by GovSecure · govsecure.ai
 `,
 };
 
-function downloadTemplate(id: string) {
+async function downloadTemplate(id: string, title: string) {
   const generator = templateContent[id];
   if (!generator) return;
   const content = generator();
-  const blob = new Blob([content], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${id}-govsecure.txt`;
-  a.click();
-  URL.revokeObjectURL(url);
+  try {
+    // `docx` is heavy; load it only when a visitor actually downloads.
+    const { downloadTemplateDocx } = await import("@/lib/export/templateDocx");
+    await downloadTemplateDocx(content, `${id}-govsecure.docx`, title);
+  } catch (err) {
+    // Fallback: never leave the button dead — ship plain text if DOCX fails.
+    console.error("[templates] DOCX generation failed, falling back to text:", err);
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${id}-govsecure.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 }
 
 // ─── Section ──────────────────────────────────────────────────────────────────
@@ -407,7 +416,7 @@ export function Playbooks() {
     <section className="section bg-terminal-dark">
       <div className="max-w-7xl mx-auto">
         {/* Section header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12 gap-4">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-12 gap-4" data-reveal>
           <div>
             <h2 className="section-title">
               AI Governance Life Cycle Templates{" "}
@@ -425,8 +434,13 @@ export function Playbooks() {
 
         {/* Template cards grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {lifecycleTemplates.map((template) => (
-            <div key={template.id} className="card group flex flex-col">
+          {lifecycleTemplates.map((template, index) => (
+            <div
+              key={template.id}
+              className="card group flex flex-col"
+              data-reveal="scale"
+              style={{ "--reveal-delay": `${index * 80}ms` } as CSSProperties}
+            >
               {/* Header with icon + FREE badge */}
               <div className="flex items-start justify-between mb-4">
                 <div className="w-10 h-10 flex items-center justify-center border border-terminal-border rounded bg-terminal-gray group-hover:border-terminal-green/50 transition-colors">
@@ -453,11 +467,11 @@ export function Playbooks() {
                   No sign-up needed
                 </span>
                 <button
-                  onClick={() => downloadTemplate(template.id)}
+                  onClick={() => downloadTemplate(template.id, template.title)}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono font-semibold text-terminal-green border border-terminal-green/40 bg-terminal-green/10 hover:bg-terminal-green/20 transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  Download
+                  Download .docx
                 </button>
               </div>
             </div>

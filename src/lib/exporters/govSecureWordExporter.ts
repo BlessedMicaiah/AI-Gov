@@ -1,31 +1,36 @@
 /**
- * Branded GovSecure DOCX exporter — Phase 2.6.1.
+ * Branded GovSecure DOCX exporter — colourful, modern template (Phase 2.6.1).
  *
- * Renders a `GovernanceDocumentOutput` as a .docx file matching the visual
- * style of the licensed GovSecure templates. Use this in preference to the
- * generic `markdownToDocx` helper for any GovSecure-licensed document type.
- *
- * Key features:
- *   - Title page with the document code, risk tier, generation date, and
- *     review cycle.
- *   - Heading 1–4 styles using the GovSecure brand palette.
- *   - Page footer with document code, version, "Confidential — Internal
- *     Use Only", and page numbers.
- *   - Required license / disclaimer block as the final section.
+ * Renders a `GovernanceDocumentOutput` as a polished .docx that mirrors the
+ * visual language of the branded PDF exporter:
+ *   - Green cover banner with the document-type eyebrow, title, and prepared-for
+ *     line.
+ *   - A washed metadata panel (document code, risk tier in tier colour, version,
+ *     generated date, review cycle).
+ *   - Shaded section heading bands with an accent left spine.
+ *   - Checkbox checklists and an accent-tagged framework-references list.
+ *   - The canonical license block inside a neutral callout panel.
+ *   - Page footer with document code, version, confidentiality stamp, and page
+ *     numbers.
  *
  * @see GOVI_GOVSECURE_INTEGRATION_PLAN.md — Phase 2.6.1
  */
 
 import {
   AlignmentType,
+  BorderStyle,
   Document,
   Footer,
-  HeadingLevel,
   NumberFormat,
   PageNumber,
   Packer,
   Paragraph,
+  ShadingType,
+  Table,
+  TableCell,
+  TableRow,
   TextRun,
+  WidthType,
 } from 'docx';
 
 import type { GovernanceDocumentOutput } from '@/lib/ai/schemas';
@@ -37,6 +42,7 @@ import {
   CONFIDENTIALITY_NOTICE,
   FONT_SIZES_HALF_PT,
   PAGE_MARGINS_TWIPS,
+  riskTierColor,
 } from './styles';
 import { LICENSE_HEADING, LICENSE_PARAGRAPHS } from './licenseBlock';
 
@@ -47,6 +53,9 @@ export interface ExportMetadata {
   /** Override generation date (ISO date string). Default = now. */
   generatedAt?: string;
 }
+
+const NO_BORDER = { style: BorderStyle.NONE, size: 0, color: 'auto' } as const;
+const FULL_WIDTH = { size: 100, type: WidthType.PERCENTAGE } as const;
 
 /**
  * Build the .docx and return it as a Node Buffer. Pure: no I/O outside
@@ -61,8 +70,11 @@ export async function exportToWord(
     ? new Date(metadata.generatedAt)
     : new Date();
 
-  const children: Paragraph[] = [];
-  pushTitle(children, doc, metadata.documentCode, version, generatedAt);
+  const children: (Paragraph | Table)[] = [];
+  children.push(coverBanner(doc));
+  children.push(spacer(120));
+  children.push(metadataPanel(doc, metadata.documentCode, version, generatedAt));
+  children.push(spacer(160));
   pushSections(children, doc);
   pushFrameworkCitations(children, doc);
   pushLicense(children);
@@ -98,80 +110,144 @@ export async function exportToWord(
   return Buffer.from(await Packer.toBuffer(document));
 }
 
-// ─── Builders ──────────────────────────────────────────────────────────────
+// ─── Cover + metadata ─────────────────────────────────────────────────────────
 
-function pushTitle(
-  children: Paragraph[],
-  doc: GovernanceDocumentOutput,
-  documentCode: string,
-  version: string,
-  generatedAt: Date,
-): void {
-  children.push(
+function coverBanner(doc: GovernanceDocumentOutput): Table {
+  const lines: Paragraph[] = [
     new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 200 },
+      spacing: { after: 60 },
+      children: [
+        new TextRun({
+          text: documentTypeLabel(doc).toUpperCase(),
+          font: BRAND_FONTS.body,
+          size: 18,
+          bold: true,
+          color: 'D9F2E5',
+        }),
+      ],
+    }),
+    new Paragraph({
+      spacing: { after: doc.useCaseName ? 60 : 0 },
       children: [
         new TextRun({
           text: doc.title,
           font: BRAND_FONTS.heading,
           size: FONT_SIZES_HALF_PT.title,
           bold: true,
-          color: BRAND_COLORS.textPrimary,
+          color: BRAND_COLORS.white,
         }),
       ],
     }),
-  );
+  ];
 
-  children.push(
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 80 },
-      children: [
-        new TextRun({
-          text: documentCode,
-          font: BRAND_FONTS.mono,
-          size: FONT_SIZES_HALF_PT.body,
-          color: BRAND_COLORS.accent,
-        }),
-      ],
-    }),
-  );
-
-  children.push(
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 400 },
-      children: [
-        muted(`Risk Tier: ${doc.riskTier}`),
-        muted('  ·  '),
-        muted(`Version ${version}`),
-        muted('  ·  '),
-        muted(`Generated ${generatedAt.toISOString().slice(0, 10)}`),
-        muted('  ·  '),
-        muted(`Review cycle: ${doc.reviewCycle}`),
-      ],
-    }),
-  );
-}
-
-function pushSections(children: Paragraph[], doc: GovernanceDocumentOutput): void {
-  for (const section of doc.sections) {
-    children.push(
+  if (doc.useCaseName) {
+    lines.push(
       new Paragraph({
-        spacing: { before: 320, after: 100 },
-        heading: HeadingLevel.HEADING_1,
         children: [
           new TextRun({
-            text: section.heading,
-            font: BRAND_FONTS.heading,
-            size: FONT_SIZES_HALF_PT.h1,
-            color: BRAND_COLORS.accent,
-            bold: true,
+            text: `Prepared for: ${doc.useCaseName}`,
+            font: BRAND_FONTS.body,
+            size: 22,
+            color: 'D9F2E5',
           }),
         ],
       }),
     );
+  }
+
+  return new Table({
+    width: FULL_WIDTH,
+    borders: {
+      top: NO_BORDER, bottom: NO_BORDER, left: NO_BORDER, right: NO_BORDER,
+      insideHorizontal: NO_BORDER, insideVertical: NO_BORDER,
+    },
+    rows: [
+      new TableRow({
+        children: [
+          new TableCell({
+            shading: { type: ShadingType.SOLID, color: 'auto', fill: BRAND_COLORS.banner },
+            margins: { top: 300, bottom: 300, left: 320, right: 320 },
+            children: lines,
+          }),
+        ],
+      }),
+    ],
+  });
+}
+
+function metadataPanel(
+  doc: GovernanceDocumentOutput,
+  documentCode: string,
+  version: string,
+  generatedAt: Date,
+): Table {
+  const rows: { label: string; value: string; color?: string; mono?: boolean }[] = [
+    { label: 'Document Code', value: documentCode, mono: true, color: BRAND_COLORS.accentDim },
+    { label: 'Risk Tier', value: doc.riskTier, color: riskTierColor(doc.riskTier) },
+    { label: 'Version', value: version },
+    { label: 'Generated', value: generatedAt.toISOString().slice(0, 10) },
+    { label: 'Review Cycle', value: doc.reviewCycle },
+  ];
+
+  const thinBorder = { style: BorderStyle.SINGLE, size: 2, color: BRAND_COLORS.panelBorder } as const;
+
+  return new Table({
+    width: FULL_WIDTH,
+    borders: {
+      top: thinBorder, bottom: thinBorder, left: thinBorder, right: thinBorder,
+      insideHorizontal: thinBorder, insideVertical: NO_BORDER,
+    },
+    rows: rows.map(
+      (r) =>
+        new TableRow({
+          children: [
+            new TableCell({
+              shading: { type: ShadingType.SOLID, color: 'auto', fill: BRAND_COLORS.panel },
+              margins: { top: 60, bottom: 60, left: 200, right: 120 },
+              width: { size: 34, type: WidthType.PERCENTAGE },
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: r.label.toUpperCase(),
+                      font: BRAND_FONTS.body,
+                      size: 16,
+                      bold: true,
+                      color: BRAND_COLORS.textMuted,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableCell({
+              shading: { type: ShadingType.SOLID, color: 'auto', fill: BRAND_COLORS.panel },
+              margins: { top: 60, bottom: 60, left: 120, right: 200 },
+              width: { size: 66, type: WidthType.PERCENTAGE },
+              children: [
+                new Paragraph({
+                  children: [
+                    new TextRun({
+                      text: r.value,
+                      font: r.mono ? BRAND_FONTS.mono : BRAND_FONTS.body,
+                      size: FONT_SIZES_HALF_PT.body,
+                      bold: !r.mono,
+                      color: r.color ?? BRAND_COLORS.textPrimary,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+    ),
+  });
+}
+
+// ─── Body ──────────────────────────────────────────────────────────────────
+
+function pushSections(children: (Paragraph | Table)[], doc: GovernanceDocumentOutput): void {
+  doc.sections.forEach((section, idx) => {
+    children.push(sectionBand(`${idx + 1}.  ${section.heading}`));
 
     if (section.content) {
       for (const para of splitParagraphs(section.content)) {
@@ -195,11 +271,18 @@ function pushSections(children: Paragraph[], doc: GovernanceDocumentOutput): voi
       for (const item of section.checklistItems) {
         children.push(
           new Paragraph({
-            spacing: { before: 40, after: 40 },
-            bullet: { level: 0 },
+            spacing: { before: 50, after: 50 },
+            indent: { left: 180 },
             children: [
               new TextRun({
-                text: `${item.complete ? '☒ ' : '☐ '}${item.text}`,
+                text: item.complete ? '☒  ' : '☐  ',
+                font: BRAND_FONTS.body,
+                size: FONT_SIZES_HALF_PT.body,
+                bold: true,
+                color: item.complete ? BRAND_COLORS.accent : BRAND_COLORS.textMuted,
+              }),
+              new TextRun({
+                text: item.text,
                 font: BRAND_FONTS.body,
                 size: FONT_SIZES_HALF_PT.body,
                 color: BRAND_COLORS.textPrimary,
@@ -209,35 +292,41 @@ function pushSections(children: Paragraph[], doc: GovernanceDocumentOutput): voi
         );
       }
     }
-  }
+  });
+}
+
+/** Shaded section band with an accent left spine — the colourful heading style. */
+function sectionBand(text: string): Paragraph {
+  return new Paragraph({
+    spacing: { before: 320, after: 120 },
+    shading: { type: ShadingType.SOLID, color: 'auto', fill: BRAND_COLORS.accentSoft },
+    border: {
+      left: { style: BorderStyle.SINGLE, size: 20, color: BRAND_COLORS.accent, space: 8 },
+    },
+    children: [
+      new TextRun({
+        text,
+        font: BRAND_FONTS.heading,
+        size: FONT_SIZES_HALF_PT.h1,
+        bold: true,
+        color: BRAND_COLORS.accentDim,
+      }),
+    ],
+  });
 }
 
 function pushFrameworkCitations(
-  children: Paragraph[],
+  children: (Paragraph | Table)[],
   doc: GovernanceDocumentOutput,
 ): void {
   if (!doc.frameworkCitations || doc.frameworkCitations.length === 0) return;
 
-  children.push(
-    new Paragraph({
-      spacing: { before: 320, after: 100 },
-      heading: HeadingLevel.HEADING_2,
-      children: [
-        new TextRun({
-          text: 'Framework References',
-          font: BRAND_FONTS.heading,
-          size: FONT_SIZES_HALF_PT.h2,
-          color: BRAND_COLORS.accentDim,
-          bold: true,
-        }),
-      ],
-    }),
-  );
+  children.push(sectionBand('Framework References'));
 
   for (const c of doc.frameworkCitations) {
     children.push(
       new Paragraph({
-        spacing: { before: 40, after: 40 },
+        spacing: { before: 50, after: 50 },
         bullet: { level: 0 },
         children: [
           new TextRun({
@@ -245,7 +334,7 @@ function pushFrameworkCitations(
             bold: true,
             font: BRAND_FONTS.body,
             size: FONT_SIZES_HALF_PT.body,
-            color: BRAND_COLORS.textPrimary,
+            color: BRAND_COLORS.accentDim,
           }),
           new TextRun({
             text: c.description,
@@ -259,45 +348,67 @@ function pushFrameworkCitations(
   }
 }
 
-function pushLicense(children: Paragraph[]): void {
-  children.push(
+function pushLicense(children: (Paragraph | Table)[]): void {
+  const inner: Paragraph[] = [
     new Paragraph({
-      spacing: { before: 480, after: 120 },
-      heading: HeadingLevel.HEADING_2,
+      spacing: { after: 100 },
       children: [
         new TextRun({
           text: LICENSE_HEADING,
           font: BRAND_FONTS.heading,
-          size: FONT_SIZES_HALF_PT.h2,
-          color: BRAND_COLORS.textMuted,
+          size: FONT_SIZES_HALF_PT.h3,
           bold: true,
+          color: BRAND_COLORS.textPrimary,
         }),
       ],
     }),
-  );
+  ];
 
   for (const p of LICENSE_PARAGRAPHS) {
-    children.push(
+    inner.push(
       new Paragraph({
-        spacing: { before: 80, after: 80 },
+        spacing: { before: 70, after: 70 },
         children: [
           new TextRun({
             text: `${p.heading}. `,
             bold: true,
             font: BRAND_FONTS.body,
-            size: FONT_SIZES_HALF_PT.body,
+            size: FONT_SIZES_HALF_PT.footer,
             color: BRAND_COLORS.textPrimary,
           }),
           new TextRun({
             text: p.body,
             font: BRAND_FONTS.body,
-            size: FONT_SIZES_HALF_PT.body,
-            color: BRAND_COLORS.textPrimary,
+            size: FONT_SIZES_HALF_PT.footer,
+            color: BRAND_COLORS.textMuted,
           }),
         ],
       }),
     );
   }
+
+  const thinBorder = { style: BorderStyle.SINGLE, size: 2, color: BRAND_COLORS.panelBorder } as const;
+  children.push(spacer(360));
+  children.push(
+    new Table({
+      width: FULL_WIDTH,
+      borders: {
+        top: thinBorder, bottom: thinBorder, left: thinBorder, right: thinBorder,
+        insideHorizontal: NO_BORDER, insideVertical: NO_BORDER,
+      },
+      rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              shading: { type: ShadingType.SOLID, color: 'auto', fill: BRAND_COLORS.panel },
+              margins: { top: 220, bottom: 220, left: 280, right: 280 },
+              children: inner,
+            }),
+          ],
+        }),
+      ],
+    }),
+  );
 }
 
 function brandedFooter(documentCode: string, version: string): Footer {
@@ -326,14 +437,8 @@ function brandedFooter(documentCode: string, version: string): Footer {
 
 // ─── Small helpers ─────────────────────────────────────────────────────────
 
-function muted(text: string): TextRun {
-  return new TextRun({
-    text,
-    font: BRAND_FONTS.body,
-    size: FONT_SIZES_HALF_PT.body,
-    color: BRAND_COLORS.textMuted,
-    italics: true,
-  });
+function spacer(after: number): Paragraph {
+  return new Paragraph({ spacing: { after }, children: [] });
 }
 
 function splitParagraphs(content: string): string[] {
@@ -341,4 +446,25 @@ function splitParagraphs(content: string): string[] {
     .split(/\n{2,}/)
     .map((p) => p.replace(/\s+/g, ' ').trim())
     .filter(Boolean);
+}
+
+/** Human label for the document type, derived from the type slug. */
+function documentTypeLabel(doc: GovernanceDocumentOutput): string {
+  const slug = doc.documentType ?? '';
+  const known: Record<string, string> = {
+    'govsecure-aup': 'Acceptable Use Policy',
+    'govsecure-governance-policy': 'AI Governance Policy',
+    'govsecure-checklist-intake': 'Intake Checklist',
+    dpia: 'Data Protection Impact Assessment',
+    'monitoring-plan': 'Monitoring Plan',
+  };
+  if (known[slug]) return known[slug];
+  if (slug) {
+    return slug
+      .replace(/^govsecure-/, '')
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  }
+  return 'Governance Document';
 }

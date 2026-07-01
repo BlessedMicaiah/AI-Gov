@@ -7,29 +7,7 @@ import { useSession, signOut } from "next-auth/react";
 import { Menu, X, ChevronDown, LogOut, User, Shield } from "lucide-react";
 import { SearchTrigger } from "@/components/search";
 import { ThemeToggle } from "@/components/ui";
-
-type NavItem = {
-  name: string;
-  href: string;
-  children?: { name: string; href: string }[];
-};
-
-const publicNav: NavItem[] = [
-  { name: "Home", href: "/" },
-  { name: "Govi Advisor", href: "/govi" },
-  { name: "Pricing", href: "/pricing" },
-  { name: "FAQ", href: "/faq" },
-  { name: "Contact", href: "/contact" },
-];
-
-const authedNav: NavItem[] = [
-  { name: "Home", href: "/" },
-  { name: "Playbooks", href: "/playbooks" },
-  { name: "Topics", href: "/topics" },
-  { name: "Govi", href: "/govi" },
-  { name: "FAQ", href: "/faq" },
-  { name: "Contact", href: "/contact" },
-];
+import { publicNav, authedNav } from "./nav";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -80,7 +58,8 @@ export function Header() {
             </span>
           </Link>
 
-          {/* Desktop navigation */}
+          {/* Desktop navigation — authenticated users navigate via the sidebar */}
+          {!isAuthenticated && (
           <div className="hidden md:flex items-center gap-1">
             {navigation.map((item) => (
               <div key={item.name} className="relative">
@@ -130,6 +109,7 @@ export function Header() {
               </div>
             ))}
           </div>
+          )}
 
           {/* Auth area */}
           <div className="hidden md:flex items-center gap-3">

@@ -406,7 +406,7 @@ export function HowItWorks() {
       <section className="section">
         <div className="max-w-6xl mx-auto">
           {/* Section header */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-12" data-reveal>
             <span className="inline-flex items-center gap-2 px-3 py-1 mb-4 border border-terminal-border rounded-full bg-terminal-dark/50">
               <span className="w-1.5 h-1.5 bg-terminal-green rounded-full" />
               <span className="font-mono text-xs text-terminal-muted uppercase tracking-wider">
@@ -426,7 +426,7 @@ export function HowItWorks() {
           {/* Step cards */}
           <ol className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Card 01 — Intake form popup */}
-            <li className="relative rounded-xl border border-terminal-border bg-terminal-gray p-6 flex flex-col gap-3">
+            <li className="relative rounded-xl border border-terminal-border bg-terminal-gray p-6 flex flex-col gap-3" data-reveal="scale">
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-terminal-green/10 text-terminal-green">
                   <MessageSquare className="w-5 h-5" aria-hidden="true" />
@@ -451,7 +451,7 @@ export function HowItWorks() {
             </li>
 
             {/* Card 02 — Go to Govi */}
-            <li className="relative rounded-xl border border-terminal-border bg-terminal-gray p-6 flex flex-col gap-3">
+            <li className="relative rounded-xl border border-terminal-border bg-terminal-gray p-6 flex flex-col gap-3" data-reveal="scale">
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-terminal-green/10 text-terminal-green">
                   <ScanSearch className="w-5 h-5" aria-hidden="true" />
@@ -475,7 +475,7 @@ export function HowItWorks() {
             </li>
 
             {/* Card 03 — Generate free DPIA */}
-            <li className="relative rounded-xl border border-terminal-border bg-terminal-gray p-6 flex flex-col gap-3">
+            <li className="relative rounded-xl border border-terminal-border bg-terminal-gray p-6 flex flex-col gap-3" data-reveal="scale">
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-terminal-green/10 text-terminal-green">
                   <FileSignature className="w-5 h-5" aria-hidden="true" />
