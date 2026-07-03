@@ -91,7 +91,7 @@ export function SovereignConsole({ session }: SovereignConsoleProps) {
     !(!s.isAuthenticated && s.guestUsed);
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] w-full flex-col bg-terminal-black lg:flex-row">
+    <div className="sovereign-scope flex h-[calc(100vh-4rem)] w-full flex-col bg-terminal-black text-terminal-text lg:flex-row">
       {/* ── Main column ── */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Identity now lives at the top of the left sidebar (see Sidebar.tsx). */}

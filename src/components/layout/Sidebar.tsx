@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { authedNav } from "./nav";
-import { useTheme } from "@/context/ThemeContext";
 
 /**
  * Left-hand dashboard sidebar shown to authenticated users on desktop.
@@ -20,10 +19,9 @@ export function Sidebar({
   onToggle: () => void;
 }) {
   const pathname = usePathname();
-  const { theme, mounted } = useTheme();
-  // Show Govi's identity at the top of the sidebar only on the new console UI
-  // (the light-theme Govi skin), where the console's own header has been removed.
-  const showGoviBrand = mounted && theme === "light" && pathname.startsWith("/govi");
+  // Show Govi's identity at the top of the sidebar on /govi — the console has
+  // no header of its own (it's now the single Govi experience on both themes).
+  const showGoviBrand = pathname.startsWith("/govi");
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";

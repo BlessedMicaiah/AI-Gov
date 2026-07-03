@@ -21,40 +21,53 @@ interface SkinOption {
 
 const TerminalPreview = () => (
   <div className="h-full w-full bg-[#0a0a0a] p-3 font-mono text-[9px] leading-relaxed">
-    <div className="mb-2 flex items-center gap-1">
-      <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-      <span className="h-1.5 w-1.5 rounded-full bg-yellow-500" />
-      <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-      <span className="ml-2 text-[#888]">Govi v1.0</span>
+    <div className="mb-2 flex items-center justify-between">
+      <span className="tracking-widest text-[#e0e0e0]">
+        GOV<span className="text-[#00ff88]">SECURE</span>
+      </span>
+      <span className="rounded-full bg-[#00ff88]/10 px-1.5 text-[#00ff88]">+3</span>
     </div>
-    <p className="text-[#00ff88]">{'>'} analyze data retention policy_</p>
-    <div className="mt-2 rounded border border-[#2a2a2a] p-1.5">
-      <p className="text-[#e0e0e0]">RISK: <span className="text-[#ffb800]">MEDIUM</span></p>
-      <p className="text-[#888]">EU AI Act · Article 12</p>
+    <div className="grid grid-cols-2 gap-1.5">
+      <div className="rounded border border-[#2a2a2a] bg-[#121212] p-1.5">
+        <p className="text-[#888]">AI SYSTEMS</p>
+        <p className="text-sm font-bold text-[#e0e0e0]">24</p>
+        <div className="mt-1 h-0.5 w-full rounded-full bg-[#1a1a1a]">
+          <div className="h-0.5 w-3/4 rounded-full bg-[#00ff88]" />
+        </div>
+      </div>
+      <div className="rounded border border-[#2a2a2a] bg-[#121212] p-1.5">
+        <p className="text-[#888]">COVERAGE</p>
+        <p className="text-sm font-bold text-[#e0e0e0]">68%</p>
+        <div className="mt-1 h-0.5 w-full rounded-full bg-[#1a1a1a]">
+          <div className="h-0.5 w-2/3 rounded-full bg-[#00d4ff]" />
+        </div>
+      </div>
     </div>
   </div>
 );
 
 const SovereignPreview = () => (
-  <div className="flex h-full w-full bg-white text-[9px]">
-    <div className="flex-1 p-3">
-      <p className="font-semibold text-slate-800">AI Governance Advisor</p>
-      <div className="mt-2 ml-auto w-2/3 rounded-lg rounded-tr-sm bg-slate-100 p-1.5 text-slate-600">
-        Analyze retention policy…
-      </div>
-      <div className="mt-2 rounded-lg border border-slate-200 p-1.5">
-        <span className="font-semibold text-emerald-600">G</span>{' '}
-        <span className="text-slate-500">Govi</span>
-        <div className="mt-1 h-1 w-3/4 rounded-full bg-slate-100" />
-      </div>
+  <div className="h-full w-full bg-white p-3 font-mono text-[9px] leading-relaxed">
+    <div className="mb-2 flex items-center justify-between">
+      <span className="tracking-widest text-[#1a1a1a]">
+        GOV<span className="text-[#00aa55]">SECURE</span>
+      </span>
+      <span className="rounded-full bg-[#00aa55]/10 px-1.5 text-[#00aa55]">+3</span>
     </div>
-    <div className="w-1/3 border-l border-slate-100 p-2">
-      <p className="text-[7px] font-semibold uppercase text-slate-400">Readiness</p>
-      <div className="mt-1 h-1 w-full rounded-full bg-slate-200">
-        <div className="h-1 w-4/5 rounded-full bg-emerald-500" />
+    <div className="grid grid-cols-2 gap-1.5">
+      <div className="rounded border border-[#e0e0e0] bg-[#f8f9fa] p-1.5">
+        <p className="text-[#666]">AI SYSTEMS</p>
+        <p className="text-sm font-bold text-[#1a1a1a]">24</p>
+        <div className="mt-1 h-0.5 w-full rounded-full bg-[#f0f1f3]">
+          <div className="h-0.5 w-3/4 rounded-full bg-[#00aa55]" />
+        </div>
       </div>
-      <div className="mt-2 flex flex-wrap gap-1">
-        <span className="rounded border border-slate-200 px-1 text-slate-600">EU AI Act</span>
+      <div className="rounded border border-[#e0e0e0] bg-[#f8f9fa] p-1.5">
+        <p className="text-[#666]">COVERAGE</p>
+        <p className="text-sm font-bold text-[#1a1a1a]">68%</p>
+        <div className="mt-1 h-0.5 w-full rounded-full bg-[#f0f1f3]">
+          <div className="h-0.5 w-2/3 rounded-full bg-[#0099cc]" />
+        </div>
       </div>
     </div>
   </div>
@@ -63,24 +76,23 @@ const SovereignPreview = () => (
 const OPTIONS: SkinOption[] = [
   {
     id: 'terminal',
-    name: 'Classic Terminal',
-    tagline: 'Dark theme',
+    name: 'Dark',
+    tagline: 'Default',
     description:
-      'The original Govi — a focused, retro terminal advisor with the GovSecure aesthetic. Pairs with the dark theme.',
-    bullets: ['High-contrast terminal theme', 'Single-column, distraction-free', 'Familiar Govi v1 layout'],
+      'The GovSecure terminal aesthetic across the whole app — dark surfaces, neon-green accents, high contrast.',
+    bullets: ['High-contrast terminal theme', 'Best for low-light work', 'Matches the Govi console'],
     preview: <TerminalPreview />,
   },
   {
     id: 'sovereign',
-    name: 'Console',
-    tagline: 'Light theme',
+    name: 'Light',
+    tagline: 'Daylight',
     description:
-      'A modern, full-width workspace with a live governance analysis panel: compliance readiness, risk exposure, detected regulatory entities and cited sources. Pairs with the light theme.',
+      'Brighter surfaces for daylight work across dashboards and documents. The Govi console itself stays in its dark command-center style.',
     bullets: [
-      'Live governance analysis side panel',
-      'Readiness & risk-exposure gauges',
-      'Detected entities + reference documents',
-      'Exportable session log',
+      'Light app surfaces, softer contrast',
+      'Same green accent language',
+      'Govi console unchanged',
     ],
     preview: <SovereignPreview />,
   },
@@ -106,8 +118,8 @@ export function SettingsClient({ initialInterface }: SettingsClientProps) {
     <AppPage width="max-w-4xl">
       <PageHeader
         eyebrow="Workspace / Settings"
-        title="Govi Interface"
-        description="Choose how the Govi advisor looks and feels. This is tied to your light/dark theme — picking one here switches the app theme too, and applies instantly. You can also use the theme toggle in the header."
+        title="Appearance"
+        description="Choose the app's color theme — it applies instantly, and the header toggle does the same thing. The Govi console keeps its dark command-center look on both themes."
       />
 
         <div className="grid gap-5 sm:grid-cols-2">

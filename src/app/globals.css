@@ -404,6 +404,36 @@ a {
     transform: none !important;
   }
 }
+/* ── Sovereign Console dark scope ──
+   The Govi console always renders in the terminal (dark) palette — the AAA
+   console design — regardless of the app theme. Re-pins every theme variable
+   to its dark value so terminal-* tokens resolve dark inside the console. */
+.sovereign-scope {
+  --color-bg-primary: #0a0a0a;
+  --color-bg-secondary: #121212;
+  --color-bg-tertiary: #1a1a1a;
+  --color-border: #2a2a2a;
+  --color-text-primary: #e0e0e0;
+  --color-text-muted: #888888;
+  --color-accent: #00ff88;
+  --color-accent-dim: #00cc6a;
+  --color-cyan: #00d4ff;
+  --color-amber: #ffb800;
+  --color-red: #ff3366;
+  --color-bg-primary-rgb: 10 10 10;
+  --color-bg-secondary-rgb: 18 18 18;
+  --color-bg-tertiary-rgb: 26 26 26;
+  --color-border-rgb: 42 42 42;
+  --color-text-primary-rgb: 224 224 224;
+  --color-text-muted-rgb: 136 136 136;
+  --color-accent-rgb: 0 255 136;
+  --color-accent-dim-rgb: 0 204 106;
+  --color-cyan-rgb: 0 212 255;
+  --color-amber-rgb: 255 184 0;
+  --color-red-rgb: 255 51 102;
+  color-scheme: dark;
+}
+
 /* ── Sovereign Audit Console: markdown narrative styling ──
    Theme-aware: colors resolve through the terminal token variables so the
    console reads correctly on both the dark and light skins. */
