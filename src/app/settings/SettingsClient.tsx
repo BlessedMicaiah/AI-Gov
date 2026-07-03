@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Terminal, LayoutPanelLeft, Check, ExternalLink } from 'lucide-react';
 import { type GoviInterface } from '@/components/advisor/useGoviInterface';
 import { useTheme } from '@/context/ThemeContext';
+import { AppPage, PageHeader } from '@/components/app';
 
 interface SettingsClientProps {
   initialInterface: GoviInterface;
@@ -102,26 +103,21 @@ export function SettingsClient({ initialInterface }: SettingsClientProps) {
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
-      <div className="mx-auto max-w-4xl px-6">
-        <div className="mb-2 font-mono text-xs uppercase tracking-[0.16em] text-terminal-green">
-          Settings
-        </div>
-        <h1 className="text-2xl font-bold text-terminal-text">Govi Interface</h1>
-        <p className="mt-2 max-w-2xl text-sm text-terminal-muted">
-          Choose how the Govi advisor looks and feels. This is tied to your
-          light/dark theme — picking one here switches the app theme too, and
-          applies instantly. You can also use the theme toggle in the header.
-        </p>
+    <AppPage width="max-w-4xl">
+      <PageHeader
+        eyebrow="Workspace / Settings"
+        title="Govi Interface"
+        description="Choose how the Govi advisor looks and feels. This is tied to your light/dark theme — picking one here switches the app theme too, and applies instantly. You can also use the theme toggle in the header."
+      />
 
-        <div className="mt-8 grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-2">
           {OPTIONS.map((opt) => {
             const isActive = active === opt.id;
             return (
               <button
                 key={opt.id}
                 onClick={() => choose(opt.id)}
-                className={`group relative overflow-hidden rounded-2xl border text-left transition-all ${
+                className={`group relative overflow-hidden rounded-xl border text-left transition-all ${
                   isActive
                     ? 'border-terminal-green ring-2 ring-terminal-green/30'
                     : 'border-terminal-border hover:border-terminal-green/50'
@@ -148,7 +144,7 @@ export function SettingsClient({ initialInterface }: SettingsClientProps) {
                     <span className="font-mono text-sm font-bold text-terminal-text">
                       {opt.name}
                     </span>
-                    <span className="rounded-full bg-terminal-green/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wide text-terminal-green">
+                    <span className="rounded-full bg-terminal-green/10 px-2 py-0.5 text-xs font-mono uppercase tracking-wide text-terminal-green">
                       {opt.tagline}
                     </span>
                   </div>
@@ -164,7 +160,7 @@ export function SettingsClient({ initialInterface }: SettingsClientProps) {
 
                   <div className="mt-4 flex items-center gap-2">
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-mono font-semibold ${
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-mono font-semibold ${
                         isActive
                           ? 'bg-terminal-green/15 text-terminal-green'
                           : 'border border-terminal-border text-terminal-muted group-hover:text-terminal-text'
@@ -185,7 +181,7 @@ export function SettingsClient({ initialInterface }: SettingsClientProps) {
           })}
         </div>
 
-        <div className="mt-6 flex items-center justify-between rounded-xl border border-terminal-border bg-terminal-bg-secondary/40 px-4 py-3">
+        <div className="flex items-center justify-between rounded-xl border border-terminal-border bg-terminal-dark/40 px-4 py-3">
           <p className="text-xs text-terminal-muted">
             Applies instantly across Govi.
           </p>
@@ -196,7 +192,6 @@ export function SettingsClient({ initialInterface }: SettingsClientProps) {
             Open Govi <ExternalLink className="h-3 w-3" />
           </Link>
         </div>
-      </div>
-    </div>
+    </AppPage>
   );
 }

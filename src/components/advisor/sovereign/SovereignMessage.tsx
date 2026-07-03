@@ -12,8 +12,9 @@ import {
   Loader2,
 } from 'lucide-react';
 import type { AdvisorResponse, PolicyRecommendation } from '@/types/advisor';
-import { ArtifactViewer } from '../ArtifactViewer';
 import { buildCards, type ActionCardAction } from '../ActionCardsPanel';
+import { ArtifactCard } from './ArtifactCard';
+import type { ActiveArtifact } from './DocumentPanel';
 import { RISK_VISUALS } from './metrics';
 
 interface SovereignMessageProps {
@@ -23,6 +24,9 @@ interface SovereignMessageProps {
   isLast: boolean;
   isPaidUser: boolean;
   isActionLoading: boolean;
+  /** Id of the artifact currently open in the document panel, if any. */
+  openArtifactId: string | null;
+  onOpenArtifact: (artifact: ActiveArtifact) => void;
   onFollowUp?: (question: string) => void;
   onAction: (action: ActionCardAction) => void;
 }
@@ -33,14 +37,14 @@ function PolicyCard({ policy, index }: { policy: PolicyRecommendation; index: nu
   const Icon = POLICY_ICONS[index % POLICY_ICONS.length];
   const isWarn = policy.priority === 'high';
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+    <div className="rounded-xl border border-terminal-border bg-terminal-gray/20 p-4">
       <div className="mb-2 flex items-center gap-2">
-        <Icon className={`h-4 w-4 ${isWarn ? 'text-amber-500' : 'text-emerald-600'}`} />
-        <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.12em] text-slate-700">
+        <Icon className={`h-4 w-4 ${isWarn ? 'text-terminal-amber' : 'text-terminal-green'}`} />
+        <span className="font-mono text-xs font-semibold uppercase tracking-wider text-terminal-text">
           {policy.title}
         </span>
       </div>
-      <p className="text-[13px] leading-relaxed text-slate-600">{policy.description}</p>
+      <p className="text-sm leading-relaxed text-terminal-muted">{policy.description}</p>
     </div>
   );
 }
@@ -52,6 +56,8 @@ export function SovereignMessage({
   isLast,
   isPaidUser,
   isActionLoading,
+  openArtifactId,
+  onOpenArtifact,
   onFollowUp,
   onAction,
 }: SovereignMessageProps) {
@@ -66,20 +72,20 @@ export function SovereignMessage({
     <div className="space-y-5">
       {/* User message */}
       <div className="flex flex-col items-end">
-        <p className="mb-1.5 text-[10px] font-mono font-semibold uppercase tracking-[0.16em] text-slate-400">
+        <p className="mb-1.5 font-mono text-xs font-semibold uppercase tracking-wider text-terminal-muted">
           You{timestamp ? ` · ${timestamp}` : ''}
         </p>
-        <div className="max-w-[85%] rounded-2xl rounded-tr-md bg-slate-100 px-5 py-4">
-          <p className="text-[15px] leading-relaxed text-slate-800">{query}</p>
+        <div className="max-w-[85%] rounded-xl rounded-tr-md bg-terminal-gray/30 px-5 py-4">
+          <p className="text-[15px] leading-relaxed text-terminal-text">{query}</p>
         </div>
       </div>
 
       {/* Assistant identity */}
       <div className="flex items-center gap-2.5">
-        <span className="grid h-7 w-7 place-items-center rounded-md bg-emerald-600 text-xs font-mono font-bold text-white">
+        <span className="grid h-7 w-7 place-items-center rounded-md bg-terminal-green font-mono text-xs font-bold text-terminal-black">
           G
         </span>
-        <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.14em] text-slate-500">
+        <span className="font-mono text-xs font-semibold uppercase tracking-wider text-terminal-muted">
           Govi
           {!isClarification && (
             <span className={`ml-2 ${risk.text}`}>· {risk.label} Risk</span>
@@ -88,12 +94,12 @@ export function SovereignMessage({
       </div>
 
       {/* Assistant card */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_2px_20px_rgba(15,23,42,0.05)]">
+      <div className="glass rounded-xl p-6">
         {/* Warnings */}
         {response.warnings && response.warnings.length > 0 && (
-          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+          <div className="mb-4 rounded-md border border-terminal-amber/40 bg-terminal-amber/10 px-3 py-2">
             {response.warnings.map((w, i) => (
-              <p key={i} className="text-xs leading-relaxed text-amber-700">
+              <p key={i} className="text-xs leading-relaxed text-terminal-amber">
                 {w}
               </p>
             ))}
@@ -101,7 +107,7 @@ export function SovereignMessage({
         )}
 
         {/* Narrative */}
-        <div className="sovereign-prose text-[15px] leading-relaxed text-slate-800">
+        <div className="sovereign-prose text-[15px] leading-relaxed text-terminal-text">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {response.riskProfile.description}
           </ReactMarkdown>
@@ -111,7 +117,7 @@ export function SovereignMessage({
         {response.riskProfile.reasoning?.length > 0 && (
           <ul className="mt-3 space-y-1.5">
             {response.riskProfile.reasoning.slice(0, 4).map((r, i) => (
-              <li key={i} className="flex gap-2 text-[13px] leading-relaxed text-slate-500">
+              <li key={i} className="flex gap-2 text-sm leading-relaxed text-terminal-muted">
                 <span className={`mt-1.5 h-1 w-1 shrink-0 rounded-full ${risk.fill}`} />
                 {r}
               </li>
@@ -128,17 +134,21 @@ export function SovereignMessage({
           </div>
         )}
 
-        {/* Generated artifact (schema patch / draft) */}
+        {/* Generated document — opens in the right-hand panel */}
         {artifact && (
           <div className="mt-5">
-            <ArtifactViewer artifact={artifact} />
+            <ArtifactCard
+              artifact={artifact}
+              onOpen={onOpenArtifact}
+              isOpen={openArtifactId === artifact.id}
+            />
           </div>
         )}
 
         {/* Clarification follow-ups */}
         {isClarification && isLast && followUps.length > 0 && (
           <div className="mt-5">
-            <p className="mb-2.5 text-[11px] font-mono font-semibold uppercase tracking-[0.14em] text-slate-400">
+            <p className="mb-2.5 font-mono text-xs font-semibold uppercase tracking-wider text-terminal-cyan">
               Govi needs a little more context
             </p>
             <div className="flex flex-col gap-2">
@@ -146,7 +156,7 @@ export function SovereignMessage({
                 <button
                   key={i}
                   onClick={() => onFollowUp?.(q)}
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-left text-[13px] text-slate-700 transition-colors hover:border-emerald-400 hover:bg-emerald-50/50"
+                  className="rounded-xl border border-terminal-border bg-terminal-gray/20 px-4 py-2.5 text-left text-sm text-terminal-text transition-colors duration-300 hover:border-terminal-green/40 hover:bg-terminal-green/5"
                 >
                   {q}
                 </button>
@@ -157,11 +167,11 @@ export function SovereignMessage({
 
         {/* Action toolbar */}
         {!isClarification && !artifact && cards.length > 0 && (
-          <div className="mt-6 border-t border-slate-100 pt-4">
+          <div className="mt-6 border-t border-terminal-border pt-4">
             <div className="mb-2.5 flex items-center gap-2">
-              <GitCompare className="h-3.5 w-3.5 text-slate-400" />
-              <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.14em] text-slate-400">
-                Recommended Actions
+              <GitCompare className="h-3.5 w-3.5 text-terminal-muted" />
+              <span className="font-mono text-xs font-semibold uppercase tracking-wider text-terminal-muted">
+                Recommended actions
               </span>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -171,23 +181,23 @@ export function SovereignMessage({
                   disabled={isActionLoading || !isPaidUser}
                   onClick={() => onAction(card.action)}
                   title={card.description}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-[13px] font-medium text-slate-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-colors hover:border-emerald-400 hover:text-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-terminal-border bg-terminal-gray/20 px-3.5 py-2 font-mono text-xs font-medium text-terminal-text transition-colors duration-300 hover:border-terminal-green/50 hover:text-terminal-green disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <span className="text-emerald-600">{card.icon}</span>
+                  <span className="text-terminal-green">{card.icon}</span>
                   {card.label}
-                  {!isPaidUser && <Lock className="h-3 w-3 text-slate-400" />}
+                  {!isPaidUser && <Lock className="h-3 w-3 text-terminal-muted" />}
                 </button>
               ))}
               {isActionLoading && (
-                <span className="inline-flex items-center gap-1.5 px-2 text-[13px] text-slate-400">
+                <span className="inline-flex items-center gap-1.5 px-2 text-sm text-terminal-muted">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating…
                 </span>
               )}
             </div>
             {!isPaidUser && (
-              <p className="mt-2.5 text-xs text-slate-400">
+              <p className="mt-2.5 text-xs text-terminal-muted">
                 Document generation requires a Pro plan.{' '}
-                <a href="/pricing" className="font-medium text-emerald-600 hover:underline">
+                <a href="/pricing" className="font-medium text-terminal-green hover:underline">
                   Upgrade →
                 </a>
               </p>

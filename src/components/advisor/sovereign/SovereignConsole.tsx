@@ -1,11 +1,11 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ShieldCheck, Loader2, Radar } from 'lucide-react';
 import type { useGoviSession } from '../useGoviSession';
 import { WorkflowPanel } from '../WorkflowPanel';
-import { AuditIntelligencePanel } from './AuditIntelligencePanel';
+import { DocumentPanel, type ActiveArtifact, type PanelTab } from './DocumentPanel';
 import { SovereignMessage } from './SovereignMessage';
 import { SovereignInput } from './SovereignInput';
 import { SovereignActionsMenu } from './SovereignActionsMenu';
@@ -55,12 +55,43 @@ export function SovereignConsole({ session }: SovereignConsoleProps) {
   const isPaidUser = isPaid(s.session?.user?.role);
   const code = useMemo(() => sessionCode(s.activeConversationId), [s.activeConversationId]);
 
+  // ── Document panel state (Claude-artifacts-style) ──
+  const [openDoc, setOpenDoc] = useState<ActiveArtifact | null>(null);
+  const [panelTab, setPanelTab] = useState<PanelTab>('analysis');
+  const autoOpenedIdRef = useRef<string | null>(null);
+
+  // When a new artifact lands on the latest exchange (action card or workflow
+  // completion), open it in the document panel — once per artifact id.
+  const latestArtifact = lastResponse?.generatedArtifact ?? null;
+  useEffect(() => {
+    if (latestArtifact?.id && latestArtifact.id !== autoOpenedIdRef.current) {
+      autoOpenedIdRef.current = latestArtifact.id;
+      setOpenDoc(latestArtifact);
+      setPanelTab('document');
+    }
+  }, [latestArtifact]);
+
+  // While a document is being generated, surface the drafting state in the panel.
+  useEffect(() => {
+    if (s.actionLoading) setPanelTab('document');
+  }, [s.actionLoading]);
+
+  const openArtifact = (artifact: ActiveArtifact) => {
+    setOpenDoc(artifact);
+    setPanelTab('document');
+  };
+
+  const closeDocument = () => {
+    setOpenDoc(null);
+    setPanelTab('analysis');
+  };
+
   const showStarters =
     s.thread.length === 0 && !s.isLoading && !s.error && s.query.length === 0 &&
     !(!s.isAuthenticated && s.guestUsed);
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] w-full flex-col bg-white lg:flex-row">
+    <div className="flex h-[calc(100vh-4rem)] w-full flex-col bg-terminal-black lg:flex-row">
       {/* ── Main column ── */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Identity now lives at the top of the left sidebar (see Sidebar.tsx). */}
@@ -70,23 +101,24 @@ export function SovereignConsole({ session }: SovereignConsoleProps) {
           {/* Empty / welcome state */}
           {showStarters && (
             <div className="mx-auto max-w-2xl py-6 text-center">
-              <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-emerald-600 text-xl font-mono font-bold text-white shadow-lg shadow-emerald-600/20">
+              <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-xl bg-terminal-green font-mono text-xl font-bold text-terminal-black shadow-[0_0_30px_rgba(0,255,136,0.25)]">
                 G
               </div>
-              <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
+              <h2 className="font-mono text-2xl font-bold tracking-tight text-terminal-text">
                 AI Governance Advisor
               </h2>
-              <p className="mx-auto mt-2 max-w-lg text-[15px] leading-relaxed text-slate-500">
+              <p className="mx-auto mt-2 max-w-lg text-[15px] leading-relaxed text-terminal-muted">
                 Describe your AI use case and get an instant governance risk
-                assessment with recommendations aligned to NIST AI RMF, the EU AI
-                Act, and ISO 42001 — grounded in the GovSecure Governance Library.
+                assessment with recommendations aligned to NIST AI RMF, ISO
+                42001, and the EU AI Act — grounded in the GovSecure Governance
+                Library.
               </p>
               <div className="mt-7 grid gap-2.5 sm:grid-cols-2">
                 {STARTER_PROMPTS.map((p, i) => (
                   <button
                     key={i}
                     onClick={() => s.handleStarterPrompt(p)}
-                    className="rounded-xl border border-slate-200 bg-white p-4 text-left text-[13.5px] leading-relaxed text-slate-600 transition-all hover:border-emerald-300 hover:bg-emerald-50/40 hover:text-slate-800"
+                    className="glass rounded-xl p-4 text-left text-sm leading-relaxed text-terminal-muted transition-colors duration-300 hover:border-terminal-green/40 hover:text-terminal-text"
                   >
                     {p}
                   </button>
@@ -112,6 +144,8 @@ export function SovereignConsole({ session }: SovereignConsoleProps) {
               isLast={idx === s.thread.length - 1}
               isPaidUser={isPaidUser}
               isActionLoading={s.actionLoading}
+              openArtifactId={openDoc?.id ?? null}
+              onOpenArtifact={openArtifact}
               onFollowUp={idx === s.thread.length - 1 ? s.handleFollowUp : undefined}
               onAction={s.handleActionCard}
             />
@@ -121,17 +155,17 @@ export function SovereignConsole({ session }: SovereignConsoleProps) {
           {s.isLoading && s.streamingQuery && (
             <div className="space-y-4">
               <div className="flex flex-col items-end">
-                <div className="max-w-[85%] rounded-2xl rounded-tr-md bg-slate-100 px-5 py-4">
-                  <p className="text-[15px] leading-relaxed text-slate-800">{s.streamingQuery}</p>
+                <div className="max-w-[85%] rounded-xl rounded-tr-md bg-terminal-gray/30 px-5 py-4">
+                  <p className="text-[15px] leading-relaxed text-terminal-text">{s.streamingQuery}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2.5">
-                <span className="grid h-7 w-7 place-items-center rounded-md bg-emerald-600 text-xs font-mono font-bold text-white">
+                <span className="grid h-7 w-7 place-items-center rounded-md bg-terminal-green font-mono text-xs font-bold text-terminal-black">
                   G
                 </span>
-                <span className="flex items-center gap-2 text-[11px] font-mono font-semibold uppercase tracking-[0.14em] text-slate-500">
+                <span className="flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wider text-terminal-muted">
                   Govi
-                  <span className="flex items-center gap-1 text-emerald-600">
+                  <span className="flex items-center gap-1 text-terminal-green">
                     <Radar className="h-3.5 w-3.5 animate-spin" style={{ animationDuration: '2s' }} />
                     {s.streamingStage === 'reconnecting'
                       ? 'Reconnecting…'
@@ -141,11 +175,11 @@ export function SovereignConsole({ session }: SovereignConsoleProps) {
                   </span>
                 </span>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-6">
+              <div className="glass rounded-xl p-6">
                 <div className="space-y-3">
-                  <div className="h-3 w-3/4 animate-pulse rounded-full bg-slate-100" />
-                  <div className="h-3 w-full animate-pulse rounded-full bg-slate-100" />
-                  <div className="h-3 w-5/6 animate-pulse rounded-full bg-slate-100" />
+                  <div className="h-3 w-3/4 animate-pulse rounded-full bg-terminal-gray/40" />
+                  <div className="h-3 w-full animate-pulse rounded-full bg-terminal-gray/40" />
+                  <div className="h-3 w-5/6 animate-pulse rounded-full bg-terminal-gray/40" />
                 </div>
               </div>
             </div>
@@ -153,14 +187,14 @@ export function SovereignConsole({ session }: SovereignConsoleProps) {
 
           {/* Non-streaming loading (guests) */}
           {s.isLoading && !s.streamingQuery && (
-            <div className="flex items-center gap-2 text-[13px] text-slate-400">
+            <div className="flex items-center gap-2 text-sm text-terminal-muted">
               <Loader2 className="h-4 w-4 animate-spin" /> Analyzing your query…
             </div>
           )}
 
           {/* Active workflow */}
           {s.activeWorkflowSession && (
-            <div className="rounded-2xl border border-slate-200 bg-slate-900 p-1">
+            <div className="glass rounded-xl p-1">
               <WorkflowPanel
                 sessionId={s.activeWorkflowSession.sessionId}
                 onCancel={() => s.setActiveWorkflowSession(null)}
@@ -190,8 +224,8 @@ export function SovereignConsole({ session }: SovereignConsoleProps) {
 
           {/* Error */}
           {s.error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-              <p className="text-[13px] text-red-700">{s.error}</p>
+            <div className="rounded-xl border border-terminal-red/40 bg-terminal-red/10 px-4 py-3">
+              <p className="text-sm text-terminal-red">{s.error}</p>
               {s.lastFailedQuery && (
                 <button
                   onClick={() => {
@@ -199,7 +233,7 @@ export function SovereignConsole({ session }: SovereignConsoleProps) {
                     if (s.isAuthenticated) s.submitQueryStreaming(s.lastFailedQuery!);
                     else s.submitQuery(s.lastFailedQuery!);
                   }}
-                  className="mt-2 text-[13px] font-medium text-red-600 hover:underline"
+                  className="mt-2 text-sm font-medium text-terminal-red underline-offset-2 hover:underline"
                 >
                   Retry
                 </button>
@@ -209,23 +243,17 @@ export function SovereignConsole({ session }: SovereignConsoleProps) {
 
           {/* Guest gate */}
           {!s.isAuthenticated && s.guestUsed && (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 py-10 text-center">
-              <ShieldCheck className="mx-auto mb-3 h-8 w-8 text-emerald-500" />
-              <p className="text-[15px] font-semibold text-slate-800">Free prompt used</p>
-              <p className="mx-auto mt-1 max-w-sm text-[13px] text-slate-500">
+            <div className="glass rounded-xl py-10 text-center">
+              <ShieldCheck className="mx-auto mb-3 h-8 w-8 text-terminal-green" />
+              <p className="text-[15px] font-semibold text-terminal-text">Free prompt used</p>
+              <p className="mx-auto mt-1 max-w-sm text-sm text-terminal-muted">
                 Sign in to continue using Govi and save your conversation history.
               </p>
               <div className="mt-5 flex justify-center gap-3">
-                <Link
-                  href="/signin"
-                  className="rounded-lg border border-slate-300 px-5 py-2 text-[13px] font-medium text-slate-700 hover:bg-white"
-                >
+                <Link href="/signin" className="btn-secondary text-sm py-2">
                   Sign In
                 </Link>
-                <Link
-                  href="/signup"
-                  className="rounded-lg bg-emerald-500 px-5 py-2 text-[13px] font-medium text-white hover:bg-emerald-400"
-                >
+                <Link href="/signup" className="btn-primary text-sm py-2">
                   Sign Up
                 </Link>
               </div>
@@ -237,7 +265,10 @@ export function SovereignConsole({ session }: SovereignConsoleProps) {
 
         {/* Input dock */}
         {!(!s.isAuthenticated && s.guestUsed) && (
-          <div ref={s.inputAreaRef} className="border-t border-slate-200/80 bg-white/95 px-6 py-4 backdrop-blur">
+          <div
+            ref={s.inputAreaRef}
+            className="border-t border-terminal-border bg-terminal-black/95 px-6 py-4 backdrop-blur"
+          >
             <SovereignInput
               query={s.query}
               isLoading={s.isLoading}
@@ -262,11 +293,16 @@ export function SovereignConsole({ session }: SovereignConsoleProps) {
         )}
       </div>
 
-      {/* ── Intelligence panel ── */}
-      <AuditIntelligencePanel
+      {/* ── Right panel: generated documents + governance analysis ── */}
+      <DocumentPanel
+        artifact={openDoc}
+        tab={panelTab}
+        onTabChange={setPanelTab}
+        onClose={closeDocument}
         response={lastResponse}
         isPaidUser={isPaidUser}
         analyzing={s.isLoading}
+        generating={s.actionLoading}
       />
     </div>
   );
