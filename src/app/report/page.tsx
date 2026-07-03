@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { requireSession } from '@/lib/auth-guard';
-import { getInventorySummary } from '@/lib/aiSystems';
+import { getInventorySummary, RISK_CATEGORIES } from '@/lib/aiSystems';
 import { getAllPostures } from '@/lib/compliance';
 import { getRemediationSummary } from '@/lib/remediation';
 import { computeMaturity } from '@/lib/maturity';
@@ -20,7 +20,7 @@ export default async function ReportPage() {
     getRemediationSummary(session.user.id),
   ]);
 
-  const highRisk = (inventory.byRisk.high ?? 0) + (inventory.byRisk.prohibited ?? 0);
+  const highRisk = inventory.byRisk.high ?? 0;
   const generatedAt = new Date().toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'long',
@@ -85,8 +85,8 @@ export default async function ReportPage() {
             <h3 className="font-mono text-sm uppercase tracking-wider text-terminal-muted mb-3">
               Portfolio risk profile
             </h3>
-            <div className="grid grid-cols-4 gap-3 text-center">
-              {(['prohibited', 'high', 'limited', 'minimal'] as const).map((r) => (
+            <div className="grid grid-cols-3 gap-3 text-center">
+              {RISK_CATEGORIES.map((r) => (
                 <div key={r} className="rounded-lg border border-terminal-border p-3">
                   <div className="font-mono text-xl font-bold text-terminal-text">
                     {inventory.byRisk[r] ?? 0}

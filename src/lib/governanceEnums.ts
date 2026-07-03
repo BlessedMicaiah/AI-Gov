@@ -5,8 +5,8 @@
  * into the browser bundle.
  */
 
-// AI System Inventory (Tier 1a) — EU AI Act risk categories, most → least severe.
-export const RISK_CATEGORIES = ['prohibited', 'high', 'limited', 'minimal'] as const;
+// AI System Inventory (Tier 1a) — NIST/US impact tiers, most → least severe.
+export const RISK_CATEGORIES = ['high', 'moderate', 'low'] as const;
 export type RiskCategory = (typeof RISK_CATEGORIES)[number];
 
 export const LIFECYCLE_STAGES = ['idea', 'piloting', 'production', 'retired'] as const;

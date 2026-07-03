@@ -56,7 +56,7 @@ const providers: Provider[] = [
       }
 
       // Successful login — clear the failure counter
-      clearLoginAttempts(credentials.email);
+      await clearLoginAttempts(credentials.email);
 
       return {
         id: user.id,
@@ -111,6 +111,34 @@ export const authOptions: NextAuthOptions = {
           select: { role: true },
         });
         token.role = dbUser?.role ?? 'FREE';
+        token.roleCheckedAt = Date.now();
+        return token;
+      }
+
+      // Re-read the role periodically so plan upgrades/downgrades (e.g. a Stripe
+      // webhook flipping the user to FREE) and admin demotions take effect
+      // without the user having to sign out and back in.
+      //
+      // This runs on every authenticated request, so it MUST fail safe: a DB
+      // hiccup here must never throw out of the jwt callback, or getServerSession
+      // rejects and every authenticated route 500s. On error we keep the role
+      // already on the token and retry on the next interval.
+      const ROLE_TTL_MS = 5 * 60 * 1000;
+      const lastChecked = typeof token.roleCheckedAt === 'number' ? token.roleCheckedAt : 0;
+      if (token.id && Date.now() - lastChecked > ROLE_TTL_MS) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { role: true },
+          });
+          if (dbUser) {
+            token.role = dbUser.role;
+          }
+          token.roleCheckedAt = Date.now();
+        } catch (err) {
+          // Don't advance roleCheckedAt — retry the refresh on the next request.
+          console.error('[auth] role refresh failed; keeping cached role:', err);
+        }
       }
       return token;
     },

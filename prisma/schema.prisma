@@ -131,6 +131,18 @@ model NewsletterSubscriber {
   createdAt DateTime @default(now())
 }
 
+/// Idempotency ledger for external webhook deliveries (e.g. Stripe).
+/// The provider's event id is the primary key so a redelivered event is a
+/// no-op instead of being processed twice.
+model ProcessedWebhookEvent {
+  id          String   @id // provider event id (e.g. Stripe evt_...)
+  provider    String
+  eventType   String
+  processedAt DateTime @default(now())
+
+  @@index([provider, processedAt])
+}
+
 model KnowledgeEntry {
   id         String                      @id @default(cuid())
   title      String
@@ -298,7 +310,7 @@ model AiSystem {
   vendor         String?
   model          String?
   lifecycleStage String    @default("idea")     // idea | piloting | production | retired
-  riskCategory   String    @default("limited")  // prohibited | high | limited | minimal (EU AI Act)
+  riskCategory   String    @default("moderate")  // high | moderate | low (NIST/US impact tiers)
   status         String    @default("active")   // active | archived
   dataTypes      String[]  @default([])
   deployedAt     DateTime?

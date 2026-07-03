@@ -242,6 +242,7 @@ export function SovereignConsole({ session }: SovereignConsoleProps) {
               query={s.query}
               isLoading={s.isLoading}
               followUpPrompt={s.followUpPrompt}
+              isPaidUser={isPaidUser}
               onChange={s.setQuery}
               onSubmit={s.handleSubmit}
               actionsSlot={

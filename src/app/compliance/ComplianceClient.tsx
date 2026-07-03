@@ -69,8 +69,12 @@ export function ComplianceClient({ initialFrameworks }: { initialFrameworks: Fra
             Compliance Posture
           </h1>
           <p className="text-terminal-muted font-sans max-w-2xl">
-            Live control coverage across the frameworks that matter. Set each control&apos;s status to
-            build an audit-ready picture of where you stand.
+            Compliance Posture shows how your AI governance measures up against the control
+            frameworks that matter for U.S. organizations — the <strong className="text-terminal-text">NIST
+            AI Risk Management Framework</strong> and <strong className="text-terminal-text">ISO/IEC
+            42001</strong> first, with the EU AI Act available when you operate in the EU. Set each
+            control&apos;s status to turn governance into an audit-ready, defensible record of where you
+            stand and what to fix next.
           </p>
         </header>
 
