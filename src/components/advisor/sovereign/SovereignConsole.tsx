@@ -144,9 +144,10 @@ export function SovereignConsole({ session }: SovereignConsoleProps) {
               isLast={idx === s.thread.length - 1}
               isPaidUser={isPaidUser}
               isActionLoading={s.actionLoading}
+              isLoading={s.isLoading}
               openArtifactId={openDoc?.id ?? null}
               onOpenArtifact={openArtifact}
-              onFollowUp={idx === s.thread.length - 1 ? s.handleFollowUp : undefined}
+              onAnswersSubmit={idx === s.thread.length - 1 ? s.handleAnswersSubmit : undefined}
               onAction={s.handleActionCard}
             />
           ))}
