@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, ShieldAlert, Server, Clock, X, Pencil, Archive } from "lucide-react";
+import { Plus, Server, X, Pencil, Archive } from "lucide-react";
 import { RISK_CATEGORIES, LIFECYCLE_STAGES } from "@/lib/governanceEnums";
+import { AppPage, PageHeader, KpiCard, RiskPill, StagePill, formatReview } from "@/components/app";
 
 export interface AiSystemView {
   id: string;
@@ -30,13 +31,6 @@ interface Summary {
   neverReviewed: number;
 }
 
-const RISK_STYLES: Record<string, string> = {
-  prohibited: "bg-terminal-red/15 text-terminal-red border-terminal-red/40",
-  high: "bg-terminal-amber/15 text-terminal-amber border-terminal-amber/40",
-  limited: "bg-terminal-green/15 text-terminal-green border-terminal-green/40",
-  minimal: "bg-terminal-muted/15 text-terminal-muted border-terminal-border",
-};
-
 const STAGE_LABELS: Record<string, string> = {
   idea: "Idea",
   piloting: "Piloting",
@@ -60,7 +54,7 @@ export function InventoryClient({
   const [error, setError] = useState<string | null>(null);
 
   const recomputeSummary = (next: AiSystemView[]): Summary => {
-    const byRisk: Record<string, number> = { prohibited: 0, high: 0, limited: 0, minimal: 0 };
+    const byRisk: Record<string, number> = { high: 0, moderate: 0, low: 0 };
     let reviewOverdue = 0;
     let neverReviewed = 0;
     const now = Date.now();
@@ -74,7 +68,7 @@ export function InventoryClient({
 
   const openCreate = () => {
     setError(null);
-    setEditing({ riskCategory: "limited", lifecycleStage: "idea", dataTypesText: "" });
+    setEditing({ riskCategory: "moderate", lifecycleStage: "idea", dataTypesText: "" });
   };
 
   const openEdit = (s: AiSystemView) => {
@@ -143,50 +137,35 @@ export function InventoryClient({
   };
 
   return (
-    <div className="section min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <span className="font-mono text-terminal-green text-sm uppercase tracking-wider mb-3 block">
-              Governance / Inventory
-            </span>
-            <h1 className="text-3xl md:text-4xl font-mono font-bold text-terminal-text mb-3">
-              AI System Register
-            </h1>
-            <p className="text-terminal-muted font-sans max-w-2xl">
-              Every AI system your organization runs, risk-tiered against the EU AI Act with a
-              review cadence auditors can trust.
-            </p>
-          </div>
-          <button onClick={openCreate} className="btn-primary text-sm py-2">
-            <Plus className="w-4 h-4" /> Register system
-          </button>
-        </header>
+    <>
+      <AppPage>
+        <PageHeader
+          eyebrow="Governance / Inventory"
+          title="AI System Register"
+          description="Every AI system your organization runs, risk-tiered by impact (High / Moderate / Low) with a review cadence auditors can trust."
+          actions={
+            <button onClick={openCreate} className="btn-primary text-sm py-2">
+              <Plus className="w-4 h-4" /> Register system
+            </button>
+          }
+        />
 
         {/* Summary cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-          <SummaryCard icon={<Server className="w-4 h-4" />} label="Systems" value={summary.total} />
-          <SummaryCard
-            icon={<ShieldAlert className="w-4 h-4 text-terminal-red" />}
-            label="High / prohibited"
-            value={(summary.byRisk.high ?? 0) + (summary.byRisk.prohibited ?? 0)}
-          />
-          <SummaryCard
-            icon={<Clock className="w-4 h-4 text-terminal-amber" />}
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <KpiCard tone="green" label="Systems" value={summary.total} />
+          <KpiCard tone="red" label="High impact" value={summary.byRisk.high ?? 0} />
+          <KpiCard
+            tone="amber"
             label="Review overdue"
             value={summary.reviewOverdue}
+            delta={summary.reviewOverdue > 0 ? "due" : undefined}
           />
-          <SummaryCard
-            icon={<Clock className="w-4 h-4 text-terminal-muted" />}
-            label="Never reviewed"
-            value={summary.neverReviewed}
-          />
+          <KpiCard tone="muted" label="Never reviewed" value={summary.neverReviewed} />
         </div>
 
         {/* Table */}
         {systems.length === 0 ? (
-          <div className="glass-card rounded-xl p-12 text-center">
+          <div className="glass rounded-xl p-12 text-center">
             <Server className="w-10 h-10 text-terminal-muted mx-auto mb-4" />
             <p className="font-mono text-terminal-text mb-2">No AI systems registered yet</p>
             <p className="text-terminal-muted text-sm mb-6">
@@ -197,50 +176,47 @@ export function InventoryClient({
             </button>
           </div>
         ) : (
-          <div className="glass-card rounded-xl overflow-hidden">
-            <table className="w-full text-left">
+          <div className="glass rounded-xl overflow-hidden">
+            <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-terminal-border font-mono text-[11px] uppercase tracking-wider text-terminal-muted">
-                  <th className="px-4 py-3">System</th>
-                  <th className="px-4 py-3 hidden md:table-cell">Owner</th>
-                  <th className="px-4 py-3">Risk</th>
-                  <th className="px-4 py-3 hidden sm:table-cell">Stage</th>
-                  <th className="px-4 py-3 hidden lg:table-cell">Next review</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                <tr className="border-b border-terminal-border bg-terminal-gray/30 font-mono text-xs uppercase tracking-wider text-terminal-muted">
+                  <th className="px-4 py-2.5 font-semibold">System</th>
+                  <th className="px-4 py-2.5 font-semibold hidden md:table-cell">Vendor</th>
+                  <th className="px-4 py-2.5 font-semibold">Risk</th>
+                  <th className="px-4 py-2.5 font-semibold hidden sm:table-cell">Lifecycle</th>
+                  <th className="px-4 py-2.5 font-semibold hidden lg:table-cell">Next review</th>
+                  <th className="px-4 py-2.5 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {systems.map((s) => {
-                  const overdue = s.nextReviewAt && new Date(s.nextReviewAt).getTime() < Date.now();
+                  const review = formatReview(s.nextReviewAt);
                   return (
-                    <tr key={s.id} className="border-b border-terminal-border/50 hover:bg-terminal-gray/30">
+                    <tr
+                      key={s.id}
+                      className="border-b border-terminal-border/50 transition-colors duration-300 last:border-b-0 hover:bg-terminal-gray/30"
+                    >
                       <td className="px-4 py-3">
-                        <div className="font-mono text-sm text-terminal-text">{s.name}</div>
-                        {s.vendor && <div className="text-xs text-terminal-muted">{s.vendor}</div>}
-                      </td>
-                      <td className="px-4 py-3 hidden md:table-cell text-sm text-terminal-muted">
-                        {s.businessOwner || "—"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded-md border font-mono text-[11px] uppercase ${
-                            RISK_STYLES[s.riskCategory] ?? RISK_STYLES.minimal
-                          }`}
-                        >
-                          {s.riskCategory}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 hidden sm:table-cell text-sm text-terminal-muted">
-                        {STAGE_LABELS[s.lifecycleStage] ?? s.lifecycleStage}
-                      </td>
-                      <td className="px-4 py-3 hidden lg:table-cell text-sm">
-                        {s.nextReviewAt ? (
-                          <span className={overdue ? "text-terminal-amber" : "text-terminal-muted"}>
-                            {new Date(s.nextReviewAt).toLocaleDateString()}
-                          </span>
-                        ) : (
-                          <span className="text-terminal-muted">—</span>
+                        <div className="font-medium text-terminal-text">{s.name}</div>
+                        {s.model && (
+                          <div className="font-mono text-xs text-terminal-muted">{s.model}</div>
                         )}
+                      </td>
+                      <td className="px-4 py-3 hidden md:table-cell font-mono text-xs text-terminal-muted">
+                        {s.vendor || "—"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <RiskPill risk={s.riskCategory} />
+                      </td>
+                      <td className="px-4 py-3 hidden sm:table-cell">
+                        <StagePill stage={s.lifecycleStage} />
+                      </td>
+                      <td
+                        className={`px-4 py-3 hidden lg:table-cell font-mono text-xs tabular-nums ${
+                          review.overdue ? "text-terminal-amber" : "text-terminal-muted"
+                        }`}
+                      >
+                        {review.text}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-1">
@@ -267,7 +243,7 @@ export function InventoryClient({
             </table>
           </div>
         )}
-      </div>
+      </AppPage>
 
       {/* Create / edit drawer */}
       {editing && (
@@ -332,7 +308,7 @@ export function InventoryClient({
                 <Field label="Risk category">
                   <select
                     className="input-field"
-                    value={editing.riskCategory ?? "limited"}
+                    value={editing.riskCategory ?? "moderate"}
                     onChange={(e) => setEditing({ ...editing, riskCategory: e.target.value })}
                   >
                     {RISK_CATEGORIES.map((r) => (
@@ -388,19 +364,7 @@ export function InventoryClient({
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function SummaryCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
-  return (
-    <div className="glass-card rounded-xl px-4 py-3">
-      <div className="flex items-center gap-2 text-terminal-muted mb-1">
-        {icon}
-        <span className="font-mono text-[11px] uppercase tracking-wider">{label}</span>
-      </div>
-      <div className="font-mono text-2xl font-bold text-terminal-text">{value}</div>
-    </div>
+    </>
   );
 }
 

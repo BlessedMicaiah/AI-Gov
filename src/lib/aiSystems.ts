@@ -50,7 +50,7 @@ export async function createAiSystem(userId: string, input: AiSystemInput) {
       vendor: input.vendor ?? null,
       model: input.model ?? null,
       lifecycleStage: input.lifecycleStage ?? 'idea',
-      riskCategory: input.riskCategory ?? 'limited',
+      riskCategory: input.riskCategory ?? 'moderate',
       dataTypes: input.dataTypes ?? [],
       deployedAt: parseDate(input.deployedAt),
       nextReviewAt: parseDate(input.nextReviewAt),
@@ -125,7 +125,7 @@ export async function archiveAiSystem(userId: string, id: string) {
 export async function getInventorySummary(userId: string) {
   const systems = await listAiSystems(userId);
   const now = Date.now();
-  const byRisk = { prohibited: 0, high: 0, limited: 0, minimal: 0 } as Record<RiskCategory, number>;
+  const byRisk = { high: 0, moderate: 0, low: 0 } as Record<RiskCategory, number>;
   let reviewOverdue = 0;
   let neverReviewed = 0;
 
